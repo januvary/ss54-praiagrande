@@ -1,0 +1,48 @@
+{% from "components/ui_components.html" import success_alert, warning_alert, error_alert %}
+
+{% if success %}
+    {{ success_alert(message or 'PDFs gerados com sucesso') }}
+
+    {% if generated_pdfs %}
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Protocolo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Paciente</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Gerado em</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Tamanho</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                    {% for pdf in generated_pdfs %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
+                            {{ pdf.protocol }}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-700">
+                            {{ pdf.patient_name }}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-500">
+                            {{ pdf.generated_at | date("%d/%m/%Y %H:%M") }}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-500 text-right">
+                            {{ (pdf.file_size / 1024) | round(1) }} KB
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="/admin/generated-pdfs/{{ pdf.filename }}" class="text-blue-600 hover:text-blue-900">
+                                Baixar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        {{ warning_alert('Nenhum PDF foi gerado. Verifique se há processos com status "Completo" e documentos válidos.', 'Aviso') }}
+    {% endif %}
+{% else %}
+    {{ error_alert(error or 'Erro ao gerar PDFs') }}
+{% endif %}

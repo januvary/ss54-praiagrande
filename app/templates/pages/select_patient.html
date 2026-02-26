@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Selecione o Paciente - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/ui_components.html" import error_alert, spinner %}
+<section
+    class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center py-8 sm:py-12 px-4">
+    <div class="w-full max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 sm:p-8">
+            <div class="text-center mb-6 sm:mb-8">
+                <div
+                    class="w-12 h-12 sm:w-16 sm:h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-accent" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                </div>
+                <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-1 sm:mb-2">
+                    {% if patients %}Selecione o Paciente{% else %}Cadastre um Paciente{% endif %}
+                </h1>
+                <div class="flex items-center justify-center gap-4">
+                    <p class="text-xs sm:text-sm text-slate-500">
+                        {{ user.email }}
+                    </p>
+                    <form action="/logout" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="text-xs sm:text-sm text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Sair
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if patients %}
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4">Pacientes Cadastrados</h2>
+                <form method="POST" action="/select-patient" class="space-y-2 sm:space-y-3" data-loading>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    {% for patient in patients %}
+                    <label
+                        class="flex items-center p-3 sm:p-4 border border-slate-200 rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-all">
+                        <input type="radio" name="patient_id" value="{{ patient.id }}"
+                            class="w-4 h-4 text-accent border-slate-300 focus:ring-accent" required>
+                        <div class="ml-3 sm:ml-4 flex-1">
+                            <p class="font-medium text-slate-900 text-sm sm:text-base">{{ patient.name }}</p>
+                            {% if patient.date_of_birth %}
+                            <p class="text-xs sm:text-sm text-slate-500">Nascido em: {{
+                                patient.date_of_birth.strftime('%d/%m/%Y')
+                                }}</p>
+                            {% endif %}
+                            {% if patient.phone %}
+                            <p class="text-xs sm:text-sm text-slate-500">{{ patient.phone }}</p>
+                            {% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                    <button type="submit"
+                        class="w-full bg-accent hover:bg-accent-hover text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2 mt-3 sm:mt-4">
+                        <span data-button-text>Continuar</span>
+                        <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="relative mb-6 sm:mb-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-slate-200"></div>
+                </div>
+                <div class="relative flex justify-center text-xs sm:text-sm">
+                    <span class="px-2 bg-white text-slate-500">ou</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div>
+                <h2 class="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4">
+                    {% if patients %}Cadastrar Novo Paciente{% else %}Dados do Paciente{% endif %}
+                </h2>
+
+                {{ error_alert(errors) }}
+
+                <form method="POST" action="/create-patient" class="space-y-4 sm:space-y-6" data-loading>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <div>
+                        <label for="name" class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                            Nome do Paciente <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="name" name="name" required autocomplete="name"
+                            class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                            placeholder="Nome completo" value="{{ name | default('') }}">
+                    </div>
+
+                    <div>
+                        <label for="date_of_birth"
+                            class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                            Data de Nascimento
+                        </label>
+                        <input type="text" id="date_of_birth" name="date_of_birth"
+                            class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                            placeholder="DD/MM/AAAA" value="{{ date_of_birth | default('') }}">
+                    </div>
+
+                    {% if not user.phone %}
+                    <div>
+                        <label for="phone" class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                            Seu Telefone / WhatsApp
+                        </label>
+                        <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="(00) 00000-0000"
+                            maxlength="15"
+                            class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                            value="{{ phone | default('') }}">
+                    </div>
+                    {% endif %}
+
+                    <button type="submit"
+                        class="w-full bg-primary hover:bg-primary-hover text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2">
+                        <span data-button-text">{% if patients %}Adicionar Paciente{% else %}Começar{% endif %}</span>
+                        <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="module" nonce="{{ csp_nonce }}">
+    import { setupDateInput } from '/static/js/date-input.js';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Phone mask (only if phone input exists)
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                if (value.length > 6) {
+                    e.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+                } else if (value.length > 2) {
+                    e.target.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                } else if (value.length > 0) {
+                    e.target.value = `(${value}`;
+                }
+            });
+        }
+
+        // Setup auto-formatting and validation for date input
+        setupDateInput('date_of_birth');
+
+        // Initialize Flatpickr for date input
+        flatpickr("#date_of_birth", {
+            dateFormat: "d/m/Y",
+            locale: "pt",
+            allowInput: true,
+            maxDate: "today"
+        });
+    });
+</script>
+
+{% endblock %}

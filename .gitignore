@@ -1,0 +1,93 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+.env.backup
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads (in production, these might be in .gitignore or backed up separately)
+uploads/
+uploads/documents/*
+!uploads/documents/.gitkeep
+uploads/temp/*
+!uploads/temp/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Alembic
+alembic/versions/*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Hypothesis
+.hypothesis/
+
+# Development artifacts
+backend.pid
+=*
+.ruff_cache/
+.mypy_cache/
+.vulture_whitelist.py
+quality_check.sh
+reset-git-simple.sh
+reset-git-history.sh
+README.md
+requirements-dev.txt
+requirements-benchmark.txt
+coverage_report.json
+.import-linter.yml
+
+# Pre-commit hooks (development only)
+.pre-commit-config.yaml
+
+# Node.js
+node_modules/
+package.json
+package-lock.json

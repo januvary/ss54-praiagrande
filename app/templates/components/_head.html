@@ -1,0 +1,46 @@
+{# Shared head partial for base templates #}
+{# Parameters: include_file_upload, include_favicon #}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SS-54{% endblock %}</title>
+
+<!-- Tailwind CSS (built) -->
+<link href="/static/css/main.css" rel="stylesheet">
+
+<!-- Self-hosted Fonts (Inter + Outfit) -->
+<link href="/static/css/fonts.css" rel="stylesheet">
+
+<!-- Flatpickr Date Picker -->
+<link rel="stylesheet" href="/static/css/flatpickr.min.css">
+<script src="/static/js/flatpickr.min.js"></script>
+<script src="/static/js/flatpickr/pt.js"></script>
+
+<!-- Date Input Handler -->
+<script src="/static/js/date-input.js" type="module"></script>
+
+<!-- HTMX -->
+<script src="/static/js/htmx.min.js" defer></script>
+<script nonce="{{ csp_nonce }}">
+    // Configure HTMX before it initializes (must be synchronous)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof htmx !== 'undefined') {
+            htmx.config.includeIndicatorStyles = false;
+            htmx.config.inlineScriptNonce = "{{ csp_nonce }}";
+            htmx.config.inlineStyleNonce = "{{ csp_nonce }}";
+        }
+    });
+</script>
+
+{% if include_file_upload %}
+<!-- File Upload Component -->
+<script src="/static/js/file-upload-component.js" defer></script>
+{% endif %}
+
+<!-- Document Viewer -->
+<script src="/static/js/document-viewer.js" defer></script>
+
+{% if include_favicon %}
+<!-- Favicon -->
+<link rel="icon" href="/static/img/brasao_prefeitura_color.svg" type="image/svg+xml">
+{% endif %}

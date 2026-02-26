@@ -1,0 +1,130 @@
+{#
+Type Selection Grid Macro
+
+Usage:
+{% from "components/type_selection_grid.html" import render_type_grid %}
+{{ render_type_grid(
+process_types=process_types,
+back_url="/dashboard",
+card_base_url="/novo",
+title="Nova Solicitação",
+subtitle="Selecione o tipo do processo que deseja iniciar"
+) }}
+
+Parameters:
+- process_types: Dictionary of type_key -> type_info (title, description, icon, note)
+- back_url: URL for back button
+- card_base_url: Base URL for card links (e.g., "/novo" or "/renovar")
+- title: Section heading title
+- subtitle: Section heading subtitle
+- expired_processes: Optional list of expired processes for renewal
+- show_new_section_header: Show "Or start new renewal" header (for renewal page)
+#}
+
+{% from "components/ui_components.html" import icon_pill, icon_droplet, icon_activity, icon_document, icon_arrow_right,
+back_button %}
+
+{% macro render_type_grid(process_types, process_type_titles=None, back_url="/dashboard", card_base_url="/novo", title=None, subtitle=None,
+expired_processes=None, show_new_section_header=False) %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-6 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+
+        {% if title %}
+        <div class="text-center mb-4 sm:mb-8">
+            <h1 class="font-heading text-2xl sm:text-3xl font-bold text-primary mb-2 sm:mb-3">
+                {{ title }}
+            </h1>
+            {% if subtitle %}
+            <p class="text-slate-600 text-sm sm:text-base">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if expired_processes %}
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4">Processos Expirados</h2>
+            <p class="text-slate-600 text-sm sm:text-base mb-4 sm:mb-6">Selecione um processo expirado para renovar:</p>
+
+            <div class="space-y-2 sm:space-y-3">
+                {% for proc in expired_processes %}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 gap-3">
+                    <div>
+                        <p class="font-semibold text-primary text-sm sm:text-base">{{ proc.protocol_number }}</p>
+                        <p class="text-xs sm:text-sm text-slate-500">
+                            {{ process_type_titles.get(proc.type, proc.type) }} - Criado em {{ proc.created_at }}
+                        </p>
+                    </div>
+                    <a href="/renovar/{{ proc.id }}/{{ proc.type }}"
+                        class="w-full sm:w-auto text-center bg-accent hover:bg-accent-hover text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors">
+                        Renovar
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if expired_processes and show_new_section_header %}
+        <div class="text-center mb-4 sm:mb-6">
+            <h2 class="font-heading text-lg sm:text-xl font-bold text-primary mb-1 sm:mb-2">Ou inicie uma nova renovação</h2>
+            <p class="text-slate-600 text-sm sm:text-base">Selecione o tipo do processo que deseja renovar</p>
+        </div>
+        {% endif %}
+
+        <div class="grid md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {% for type_key, type_info in process_types.items() %}
+            <a href="{{ card_base_url }}/{{ type_key }}"
+                class="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl border border-slate-100 hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 flex flex-row sm:flex-col gap-3 sm:gap-0">
+
+                <div
+                    class="w-10 h-10 sm:w-14 sm:h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-4 group-hover:bg-accent/10 transition-colors">
+                    {% if type_info.icon == "pill" %}
+                    {{ icon_pill(class="w-5 h-5 sm:w-7 sm:h-7", color="text-accent") }}
+                    {% elif type_info.icon == "droplet" %}
+                    {{ icon_droplet(class="w-5 h-5 sm:w-7 sm:h-7", color="text-accent") }}
+                    {% elif type_info.icon == "activity" %}
+                    {{ icon_activity(class="w-5 h-5 sm:w-7 sm:h-7", color="text-accent") }}
+                    {% else %}
+                    {{ icon_document(class="w-5 h-5 sm:w-7 sm:h-7", color="text-accent") }}
+                    {% endif %}
+                </div>
+
+                <div class="flex-1">
+                    <h3 class="font-heading text-base sm:text-lg font-bold text-primary mb-1 sm:mb-2 group-hover:text-accent transition-colors">
+                        {{ type_info.title }}
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-4">
+                        {{ type_info.description }}
+                    </p>
+
+                    {% if type_info.note %}
+                    <p class="text-xs text-orange-600 bg-orange-50 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+                        <strong>Nota:</strong> {{ type_info.note | safe }}
+                    </p>
+                    {% endif %}
+
+                    <div
+                        class="flex items-center gap-1 text-accent text-xs sm:text-sm font-medium mt-2 sm:mt-4 group-hover:gap-2 transition-all">
+                        Selecionar
+                        {{ icon_arrow_right() }}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mb-6 sm:mb-8 max-w-2xl mx-auto">
+            <p class="text-slate-600 text-xs sm:text-sm">
+                Serão aceitas apenas solicitações de itens <strong>não</strong> disponíveis através da rede municipal <a
+                    href="/files/REMUME.pdf" target="_blank"
+                    class="inline-flex items-center gap-1 text-sm text-accent underline"> [REMUME] </a>
+            </p>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            {{ back_button(back_url, "Voltar ao painel") }}
+        </div>
+    </div>
+</section>
+{% endmacro %}

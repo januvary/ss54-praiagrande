@@ -1,0 +1,298 @@
+{% extends "admin/base.html" %}
+{% from "components/document_row.html" import document_row with context %}
+{% from "components/pagination.html" import render_pagination %}
+{% from "components/ui_components.html" import empty_state, spinner %}
+
+    <style>
+        .uniform-input-height {
+            height: 34px;
+        }
+    </style>
+
+{% block title %}{{ process.protocol_number }} - Admin{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Email Warning Banner -->
+    {% if request.query_params.get('email_warning') %}
+    {% set error_type = request.query_params.get('email_error_type', 'delivery') %}
+    <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <div>
+            <p class="text-amber-800 font-medium">{{ email_errors.status_update_failed }}</p>
+            {% if error_type == 'config' %}
+                <p class="text-amber-700 text-sm mt-1">{{ email_errors.config_error }}</p>
+            {% elif error_type == 'connection' %}
+                <p class="text-amber-700 text-sm mt-1">{{ email_errors.connection_error }}</p>
+            {% elif error_type == 'template' %}
+                <p class="text-amber-700 text-sm mt-1">{{ email_errors.template_error }}</p>
+            {% else %}
+                <p class="text-amber-700 text-sm mt-1">{{ email_errors.default_error }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="/admin/processes" class="text-slate-500 hover:text-slate-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 font-mono">{{ process.protocol_number }}</h1>
+                <p class="text-slate-600">{{ process.type_title }}</p>
+            </div>
+        </div>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-{{ status_info[process.status]['color'] }}-100 text-{{ status_info[process.status]['color'] }}-800">
+            {{ status_info[process.status]['label'] }}
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Info + Documents -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Process & Patient Info -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-sm font-medium text-slate-500 mb-3">Informações do Processo</h2>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Tipo de Processo:</span>
+                            <span class="text-slate-900">{{ process_type_titles[process.type] }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Tipo de Solicitação:</span>
+                            <span class="text-slate-900">{{ request_type_titles[process.request_type] }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Criado:</span>
+                            <span class="text-slate-900">{{ process.created_at|date("%d/%m/%Y %H:%M") }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Atualizado:</span>
+                            <span class="text-slate-900">{{ process.updated_at|date("%d/%m/%Y %H:%M") }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Documentos:</span>
+                            <span class="text-slate-900">{{ process.document_count }}</span>
+                        </div>
+                        {% if process.type == "medicamento" %}
+                        <form action="/admin/processes/{{ process.id }}/details" method="POST" class="flex justify-between items-center gap-2" data-auto-save>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <span class="text-slate-500">Descrição:</span>
+                            <input
+                                type="text"
+                                name="details"
+                                placeholder="Descrição..."
+                                class="flex-1 px-2 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uniform-input-height"
+                                value="{{ process.details or '' }}"
+                                data-action="stop-propagation"
+                            >
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-sm font-medium text-slate-500 mb-3">Paciente</h2>
+                    <div class="space-y-2 text-sm">
+                        <div>
+                            <span class="text-slate-500 text-xs">Nome</span>
+                            <p class="text-slate-900 font-medium">{{ process.patient.name or common_labels.not_informed }}</p>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 text-xs">Email</span>
+                            <p class="text-slate-900">{{ process.patient.email or common_labels.not_informed }}</p>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 text-xs">Telefone</span>
+                            <p class="text-slate-900">{{ process.patient.phone or common_labels.not_informed }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4">Documentos</h2>
+                
+                <div class="space-y-6">
+                    {% for doc_type in required_doc_types %}
+                    {% set group = process.documents | selectattr('document_type', 'equalto', doc_type) | list %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            {{ doc_type_titles[doc_type] }}
+                            <span class="text-xs text-slate-400 font-normal">({{ group | length }})</span>
+                        </h3>
+                        {% if group %}
+                        <div class="space-y-2">
+                            {% for doc in group %}
+                            {{ document_row(doc, download_url="/admin/documents", show_validate_button=true, doc_type_title=doc_type_titles.get(doc.document_type), csrf_token=csrf_token) }}
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ empty_state("Nenhum documento enviado", padding="") }}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4">Notas</h2>
+                
+                {% set status_notes = process.activities | selectattr('action', 'equalto', 'status_changed') | selectattr('extra_data.note') | list %}
+                {% if status_notes %}
+                <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                    <p class="text-xs text-blue-600 font-medium mb-2">Notas de Status (visíveis ao paciente)</p>
+                    <div class="space-y-2">
+                        {% for activity in status_notes | reverse %}
+                        <p class="text-sm text-slate-700">
+                            <span class="text-slate-500">[{{ activity.created_at | date("%d/%m/%Y %H:%M") }}]</span>
+                            {{ activity.extra_data.note }}
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if process.admin_notes %}
+                <div class="bg-amber-50 rounded-lg p-4 mb-4">
+                    <p class="text-xs text-amber-600 font-medium mb-1">Notas Internas (não visíveis ao paciente)</p>
+                    <p class="text-sm text-slate-700 whitespace-pre-wrap">{{ process.admin_notes }}</p>
+                </div>
+                {% endif %}
+
+                <form action="/admin/processes/{{ process.id }}/notes" method="POST" class="space-y-2" data-loading>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="is_internal" value="true">
+                    <textarea
+                        name="note"
+                        rows="2"
+                        placeholder="Adicionar nota interna..."
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        required
+                    ></textarea>
+                    <button type="submit" class="w-full px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 font-medium flex items-center justify-center">
+                        <span data-button-text>Adicionar Nota Interna</span>
+                        <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Actions + Activity -->
+        <div class="space-y-6">
+            <!-- Status Change -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-sm font-medium text-slate-500 mb-3">Alterar Status</h2>
+                <form id="status-update-form" action="/admin/processes/{{ process.id }}/status" method="POST" data-loading>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <select
+                        name="status"
+                        class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm mb-3 focus:ring-2 focus:ring-blue-500"
+                    >
+                        {% for s in all_statuses %}
+                        <option value="{{ s }}" {% if s == process.status %}selected{% endif %}>
+                            {{ status_info[s]['label'] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <textarea
+                        name="note"
+                        rows="2"
+                        placeholder="Nota opcional para esta atualização (visível ao paciente)..."
+                        class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm mb-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    ></textarea>
+                    <button id="status-update-btn" type="submit" class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center transition-colors">
+                        <span data-button-text>Atualizar Status</span>
+                        <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Response Documents -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-sm font-medium text-slate-500 mb-3">Documento de Resposta</h2>
+
+                <!-- Upload Form -->
+                <form action="/admin/processes/{{ process.id }}/documentos" method="POST" enctype="multipart/form-data" class="mb-4" data-loading>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="space-y-3">
+                        <input type="file" name="documento" accept=".pdf,.jpg,.jpeg,.png" required
+                               class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center">
+                            <span data-button-text>Enviar Documento</span>
+                            <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- List existing response documents -->
+                {% set response_docs = process.documents | selectattr('document_type', 'equalto', 'outro') | list %}
+                {% if response_docs %}
+                <div class="border-t border-slate-200 pt-4">
+                    <h3 class="text-xs font-medium text-slate-600 mb-2">Documentos enviados</h3>
+                    <div class="space-y-2">
+                        {% for doc in response_docs %}
+                        {{ document_row(doc, download_url="/admin/documents", show_validate_button=true, show_validation_status=false, doc_type_title="Documento de Resposta", csrf_token=csrf_token) }}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-sm font-medium text-slate-500 mb-3">Atividade</h2>
+                {% if process.activities %}
+                <div class="space-y-4">
+                    {% for activity in process.activities %}
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-2 h-2 bg-slate-300 rounded-full mt-2"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-slate-700">{{ activity.description }}</p>
+                            <p class="text-xs text-slate-400">{{ activity.created_at|date("%d/%m/%Y %H:%M") }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {{ render_pagination(current_path, activity_pagination, style="admin") }}
+                {% else %}
+                {{ empty_state("Nenhuma atividade registrada.", padding="") }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation dialog for status update
+    const statusForm = document.getElementById('status-update-form');
+    if (statusForm) {
+        statusForm.addEventListener('submit', function(e) {
+            var confirmMsg = 'Alterar status e notificar paciente por email?';
+            if (!confirm(confirmMsg)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+});
+</script>
+
+{% include "components/document_viewer_modal.html" %}
+{% endblock %}

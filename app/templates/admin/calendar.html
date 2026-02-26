@@ -1,0 +1,92 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Calendário - Admin SS-54{% endblock %}
+
+{% block content %}
+<div class="h-full">
+    <div class="flex h-full">
+        <div class="flex-1 flex flex-col">
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">Calendário</h1>
+                    <p class="text-slate-600 mt-1">Acompanhe remessas, prazos DRS e expirações</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="prev-month" class="p-2 rounded-lg hover:bg-slate-200 text-slate-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <span id="current-month-label" class="text-lg font-semibold text-slate-900 min-w-[160px] text-center"></span>
+                    <button id="next-month" class="p-2 rounded-lg hover:bg-slate-200 text-slate-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button id="today-btn" class="ml-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg">
+                        Hoje
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm flex-1 flex flex-col">
+                <div class="grid grid-cols-7 border-b border-slate-200">
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Dom</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Seg</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Ter</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Qua</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Qui</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Sex</div>
+                    <div class="py-3 text-center text-sm font-semibold text-slate-500">Sáb</div>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 flex-1">
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-center gap-6 text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full bg-blue-500"></span>
+                    <span class="text-slate-600">Remessa enviada</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full border-2 border-blue-400 bg-white"></span>
+                    <span class="text-slate-600">Remessa prevista</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full bg-amber-500"></span>
+                    <span class="text-slate-600">Prazo 30 dias DRS</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full bg-orange-500"></span>
+                    <span class="text-slate-600">Prazo 60 dias DRS</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full bg-red-500"></span>
+                    <span class="text-slate-600">Expiração (180 dias)</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="day-drawer" class="w-96 bg-white border-l border-slate-200 transform translate-x-full transition-transform duration-300 fixed right-0 top-0 h-screen overflow-y-auto z-50 shadow-xl">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 id="drawer-date" class="text-xl font-bold text-slate-900"></h2>
+                    <button id="close-drawer" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="drawer-content" class="space-y-4">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="drawer-overlay" class="fixed inset-0 bg-black/30 z-40 hidden"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin-calendar.js" defer></script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{ process_type.title }} - Nova Solicitação - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/upload_form.html" import render_upload_form %}
+{{ render_upload_form(
+    process_type=process_type,
+    type_key=type_key,
+    documents=documents,
+    orientation=orientation,
+    csrf_token=csrf_token,
+    back_url="/novo",
+    form_action="/novo/" ~ type_key,
+    submit_text="Enviar Solicitação",
+    errors=errors
+) }}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/upload-handlers.js"></script>
+{% endblock %}

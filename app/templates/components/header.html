@@ -1,0 +1,61 @@
+<div class="sticky top-0 z-50">
+    <header class="bg-white/85 backdrop-blur-lg border-b border-slate-200/50">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-3 items-center">
+            <a href="/" class="flex justify-end pr-4 sm:pr-8 hover:opacity-80 transition-opacity">
+                <img src="/static/img/brasao_prefeitura_color.svg" alt="Brasão Prefeitura" class="h-7 sm:h-10 w-auto">
+            </a>
+
+            <a href="/" class="text-center hover:opacity-80 transition-opacity">
+                <h1 class="font-heading font-semibold text-primary text-sm sm:text-lg leading-tight">SS-54</h1>
+                <p class="text-xs text-slate-500 hidden sm:block">Assistência Farmacêutica de Praia Grande</p>
+            </a>
+
+            <a href="/" class="flex justify-start pl-4 sm:pl-8 hover:opacity-80 transition-opacity">
+                <img src="/static/img/brasao_estado.svg" alt="Governo do Estado de São Paulo" class="h-7 sm:h-10 w-auto">
+            </a>
+        </div>
+    </header>
+
+    <div class="bg-white/85 backdrop-blur-lg border-b border-slate-200/50">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 py-1.5 sm:py-2">
+            {% if user and current_patient %}
+            <div class="relative flex items-center justify-center">
+                <details class="group">
+                    <summary class="flex items-center gap-1.5 cursor-pointer text-xs sm:text-sm text-slate-600 font-semibold hover:text-accent transition-colors list-none [&::-webkit-details-marker]:hidden">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span>{{ current_patient.name }}</span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </summary>
+                    <div class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
+                        <a href="/select-patient" class="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm text-slate-600 hover:bg-slate-50 hover:text-accent transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            Trocar paciente
+                        </a>
+                        <form action="/logout" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token | default('') }}">
+                            <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm text-slate-600 hover:bg-slate-50 hover:text-red-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                                Sair
+                            </button>
+                        </form>
+                    </div>
+                </details>
+            </div>
+            {% else %}
+            <div class="flex justify-center">
+                <a href="/login" class="text-xs sm:text-sm text-slate-600 hover:text-accent transition-colors">
+                    Entrar
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

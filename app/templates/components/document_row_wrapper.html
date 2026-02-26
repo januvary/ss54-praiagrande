@@ -1,0 +1,11 @@
+{# Unified wrapper for document row macro HTMX responses #}
+{% from "components/document_row.html" import document_row with context %}
+
+{# For admin-uploaded response documents (type 'outro'), don't show validation status badge #}
+{% set is_response_doc = doc.document_type == 'outro' %}
+
+{% if partial == "validation_only" %}
+    {{ document_row(doc, download_url="/admin/documents", show_validate_button=true, show_validation_status=not is_response_doc, partial="validation_only", csrf_token=csrf_token) }}
+{% else %}
+    {{ document_row(doc, download_url="/admin/documents", show_validate_button=true, show_validation_status=not is_response_doc, doc_type_title=doc_type_titles.get(doc.document_type), csrf_token=csrf_token) }}
+{% endif %}

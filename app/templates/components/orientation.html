@@ -1,0 +1,29 @@
+{# Orientation component - displays important rules and notes #}
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+    <h3 class="font-heading font-semibold text-blue-900 text-base sm:text-lg mb-2 sm:mb-3 flex items-center gap-2">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        {{ orientation.title | default("Orientações Gerais") }}
+    </h3>
+
+    <ul class="space-y-1.5 sm:space-y-2">
+        {% for rule in orientation.rules %}
+        <li class="flex items-start gap-2 text-xs sm:text-sm text-blue-800">
+            <svg class="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"></path>
+            </svg>
+            <span>{{ rule }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if orientation.note %}
+    <p class="mt-3 sm:mt-4 text-xs sm:text-sm text-blue-700 bg-blue-100 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2">
+        <strong>Nota:</strong> {{ orientation.note | safe }}
+    </p>
+    {% endif %}
+</div>

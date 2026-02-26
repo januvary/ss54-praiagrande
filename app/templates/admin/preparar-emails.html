@@ -1,0 +1,240 @@
+{% extends "admin/base.html" %}
+{% from "components/ui_components.html" import empty_state %}
+
+    <style>
+        .uniform-input-height {
+            height: 34px;
+        }
+    </style>
+
+{% block title %}Preparar Emails - Admin SS-54{% endblock %}
+
+{% block content %}
+<div>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Preparar Emails para DRS</h1>
+        <p class="text-slate-600 mt-1">Revise e envie emails com processos anexados</p>
+    </div>
+
+    {% if request.query_params.get('success') %}
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span>Email de <strong>{{ request.query_params.get('success') }}</strong> enviado com sucesso!</span>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if request.query_params.get('error') %}
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <span>Erro ao enviar email: {{ request.query_params.get('error') }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-900">Renovações</h2>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700">
+                        {{ renovacao_processes|length }} processo(s)
+                    </span>
+                </div>
+                <p class="text-sm text-slate-600">
+                    <strong>Para:</strong> {{ renovacao_email }}
+                </p>
+            </div>
+
+            {% if renovacao_processes %}
+            <form action="/admin/enviar-emails" method="POST" id="form-renovacao" data-loading>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="email_type" value="renovacao">
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Nome</th>
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Descrição</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                  {% for process in renovacao_processes %}
+                                   <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" data-action="navigate" data-url="/admin/processes/{{ process.id }}">
+                                        <td class="px-2 py-3">{{ process.patient.name if process.patient else '-' }}</td>
+                                        <td class="px-2 py-3">{{ process.type_label }}</td>
+                                         <td class="px-2">
+                                             {% if process.type == "medicamento" %}
+                                                  <input type="text" class="w-full px-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uniform-input-height" placeholder="Descrição..." data-auto-save data-process-id="{{ process.id }}" data-action="stop-propagation" value="{{ process.details }}">
+                                             {% else %}
+                                                  <span class="text-slate-400 inline-flex items-center">-</span>
+                                             {% endif %}
+                                         </td>
+                                  </tr>
+                                  {% endfor %}
+                              </tbody>
+                          </table>
+                      </div>
+   
+                      <div class="border-t border-slate-200 pt-4">
+                        <h3 class="text-sm font-medium text-slate-700 mb-2">PDFs em anexo:</h3>
+                        <div class="space-y-2">
+                            {% for process in renovacao_processes %}
+                            {% if process.combined_pdf %}
+                            <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-sm">{{ process.patient.name if process.patient else process.protocol_number }}</span>
+                                    <span class="text-xs text-slate-500">({{ (process.combined_pdf.file_size / 1024)|round(1) }} KB)</span>
+                                </div>
+                                <button type="button"
+                                    data-action="view-pdf"
+                                    data-pdf-id="{{ process.combined_pdf.id }}"
+                                    data-protocol="{{ process.protocol_number }}"
+                                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded text-xs">
+                                    Ver
+                                </button>
+                            </div>
+                            {% else %}
+                            <div class="flex items-center justify-between p-2 bg-yellow-50 rounded">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    <span class="text-sm text-yellow-800">{{ process.patient.name if process.patient else process.protocol_number }} - Sem documentos válidos</span>
+                                </div>
+                                <div class="h-7"></div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full px-4 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                        data-loading-text="Enviando...">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Enviar Email de Renovação
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="p-6">
+                {{ empty_state("Nenhum processo de renovação pronto para envio.", padding="py-8") }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-900">Primeiras Solicitações</h2>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700">
+                        {{ solicitacao_processes|length }} processo(s)
+                    </span>
+                </div>
+                <p class="text-sm text-slate-600">
+                    <strong>Para:</strong> {{ solicitacao_email }}
+                </p>
+            </div>
+
+            {% if solicitacao_processes %}
+            <form action="/admin/enviar-emails" method="POST" id="form-solicitacao" data-loading>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="email_type" value="solicitacao">
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Nome</th>
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="text-left py-3 px-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Descrição</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                   {% for process in solicitacao_processes %}
+                                   <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" data-action="navigate" data-url="/admin/processes/{{ process.id }}">
+                                      <td class="px-2 py-3">{{ process.patient.name if process.patient else '-' }}</td>
+                                      <td class="px-2 py-3">{{ process.type_label }}</td>
+                                      <td class="px-2">
+                                           {% if process.type == "medicamento" %}
+                                                <input type="text" class="w-full px-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uniform-input-height" placeholder="Descrição..." data-auto-save data-process-id="{{ process.id }}" data-action="stop-propagation" value="{{ process.details }}">
+                                           {% else %}
+                                                <span class="text-slate-400 inline-flex items-center">-</span>
+                                           {% endif %}
+                                      </td>
+                                  </tr>
+                                  {% endfor %}
+                             </tbody>
+                          </table>
+     
+                      <div class="border-t border-slate-200 pt-4">
+                        <h3 class="text-sm font-medium text-slate-700 mb-2">PDFs em anexo:</h3>
+                        <div class="space-y-2">
+                            {% for process in solicitacao_processes %}
+                            {% if process.combined_pdf %}
+                            <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-sm">{{ process.patient.name if process.patient else process.protocol_number }}</span>
+                                    <span class="text-xs text-slate-500">({{ (process.combined_pdf.file_size / 1024)|round(1) }} KB)</span>
+                                </div>
+                                <button type="button"
+                                    data-action="view-pdf"
+                                    data-pdf-id="{{ process.combined_pdf.id }}"
+                                    data-protocol="{{ process.protocol_number }}"
+                                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded text-xs">
+                                    Ver
+                                </button>
+                            </div>
+                            {% else %}
+                            <div class="flex items-center justify-between p-2 bg-yellow-50 rounded">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    <span class="text-sm text-yellow-800">{{ process.patient.name if process.patient else process.protocol_number }} - Sem documentos válidos</span>
+                                </div>
+                                <div class="h-7"></div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+    
+                    <button type="submit"
+                        class="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        data-loading-text="Enviando...">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Enviar Email de Solicitação
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="p-6">
+                {{ empty_state("Nenhum processo de primeira solicitação pronto para envio.", padding="py-8") }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% include "components/document_viewer_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin-preparar-emails.js" defer></script>
+{% endblock %}

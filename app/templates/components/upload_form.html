@@ -1,0 +1,175 @@
+{#
+Upload Form Macro
+
+Usage:
+{% from "components/upload_form.html" import render_upload_form %}
+{{ render_upload_form(
+process_type=process_type,
+type_key=type_key,
+documents=documents,
+orientation=orientation,
+csrf_token=csrf_token,
+back_url="/novo",
+form_action="/novo/" ~ type_key,
+submit_text="Enviar Solicitação",
+errors=errors
+) }}
+
+Parameters:
+- process_type: Process type object with title, note
+- type_key: URL key for the process type
+- documents: List of document objects
+- orientation: Orientation content
+- csrf_token: CSRF protection token
+- back_url: Explicit back button URL
+- form_action: Form submission URL
+- submit_text: Button text (default: "Enviar Solicitação")
+- errors: Optional error list
+#}
+
+{% from "components/ui_components.html" import page_header, spinner %}
+
+{% macro render_upload_form(process_type, type_key, documents, orientation, csrf_token, back_url, form_action,
+submit_text="Enviar Solicitação", errors=None) %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-6 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        {{ page_header(
+            title=process_type.title,
+            back_url=back_url
+        ) }}
+
+        {% if process_type.note %}
+        <p class="text-sm text-orange-600 mb-8">
+            <strong>Nota:</strong> {{ process_type.note }}
+        </p>
+        {% endif %}
+
+        <!-- Orientation -->
+        {% with orientation=orientation %}
+        {% include "components/orientation.html" %}
+        {% endwith %}
+
+        <form action="{{ form_action }}" method="POST" enctype="multipart/form-data"
+            class="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 sm:p-8" data-loading>
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            {% if errors %}
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <h3 class="font-semibold text-red-800 mb-2">Erros ao enviar solicitação:</h3>
+                <ul class="list-disc list-inside text-red-700 text-sm">
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <h2 class="font-heading text-base sm:text-lg font-semibold text-primary mb-4 sm:mb-6">
+                Documentos Necessários
+            </h2>
+
+            <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-xs sm:text-sm text-blue-900">
+                    <strong>Formatos aceitos:</strong> PDF, JPG, PNG (máximo 10MB por arquivo)
+                </p>
+                <p class="text-xs text-blue-700 mt-1">
+                    Imagens JPG e PNG serão convertidas automaticamente para PDF.
+                </p>
+            </div>
+
+            <div class="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                {% for doc in documents %}
+                <div class="border border-slate-200 rounded-xl p-3 sm:p-4 hover:border-accent/50 transition-colors">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                        <div class="flex-1">
+                            <label class="font-medium text-slate-700 text-sm sm:text-base">
+                                {{ doc.id }}. {{ doc.title }}
+                                {% if doc.required %}
+                                <span class="text-red-500">*</span>
+                                {% else %}
+                                <span class="text-slate-400 text-xs sm:text-sm">(opcional)</span>
+                                {% endif %}
+                            </label>
+
+                            {% if doc.note %}
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">{{ doc.note | safe }}</p>
+                            {% endif %}
+
+                            {% if doc.bullet_points %}
+                            <ul class="text-xs sm:text-sm text-slate-500 mt-1 list-disc list-inside">
+                                {% for item in doc.bullet_points %}
+                                <li>{{ item | safe }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+
+                            {% if doc.footer %}
+                            <p class="text-xs sm:text-sm text-slate-400 mt-1 italic">{{ doc.footer | safe }}</p>
+                            {% endif %}
+
+                            {% if doc.download %}
+                            <a href="{{ doc.download }}" target="_blank"
+                                class="inline-flex items-center gap-1 text-xs sm:text-sm text-accent hover:underline mt-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                Baixar modelo
+                            </a>
+                            {% endif %}
+
+                            {% if "Exames Complementares" in doc.title and type_key == "medicamento" %}
+                            <a href="/exames" target="_blank"
+                                class="inline-flex items-center gap-1 text-xs sm:text-sm text-accent hover:underline mt-2 ml-2 sm:ml-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                    </path>
+                                </svg>
+                                Ver requisitos especiais
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-shrink-0">
+                            <file-upload-input name="doc_{{ doc.id }}" accept=".pdf,.jpg,.jpeg,.png" multiple preview>
+                            </file-upload-input>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-6 sm:mb-8 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <label class="flex items-start gap-2 sm:gap-3 cursor-pointer">
+                    <input type="checkbox" name="terms_accepted" id="terms_accepted" required
+                        class="mt-0.5 sm:mt-1 w-4 h-4 text-accent border-slate-300 rounded focus:ring-accent">
+                    <span class="text-xs sm:text-sm text-slate-600">
+                        Paciente está ciente que cabe à Divisão de Assistência Farmacêutica de Praia Grande apenas a
+                        orientação inicial e envio das remessas por email, sendo que a análise criteriosa e avaliação
+                        médica do
+                        processo cabe ao DRS-IV, podendo ser solicitados outros exames e documentos a qualquer momento.
+                        Assim, é de responsabilidade do paciente ou responsável manter visualização no email
+                        informado.
+                        <span class="text-red-500">*</span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-200">
+                <p class="text-xs sm:text-sm text-slate-500">
+                    <span class="text-red-500">*</span> Campos obrigatórios
+                </p>
+
+                <button type="submit"
+                    class="w-full sm:w-auto bg-accent hover:bg-accent-hover text-white py-3 px-8 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                    <span data-button-text>{{ submit_text }}</span>
+                    <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endmacro %}

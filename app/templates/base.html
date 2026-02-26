@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    {% with include_file_upload=true, include_favicon=true %}
+        {% include "components/_head.html" with context %}
+    {% endwith %}
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
+
+    {% include "components/header.html" %}
+
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "components/footer.html" %}
+
+    {% block scripts %}{% endblock %}
+
+    <script src="/static/js/button-loading.js"></script>
+
+    {# CSRF token for JavaScript/AJAX requests #}
+    {% if csrf_token %}
+    <script nonce="{{ csp_nonce }}">
+        window.csrfToken = "{{ csrf_token }}";
+    </script>
+    {% endif %}
+</body>
+
+</html>

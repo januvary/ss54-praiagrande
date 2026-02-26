@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Renovar - {{ process_type.title }} - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/upload_form.html" import render_upload_form %}
+{{ render_upload_form(
+    process_type=process_type,
+    type_key=type_key,
+    documents=documents,
+    orientation=orientation,
+    csrf_token=csrf_token,
+    back_url="/renovar" + ("/" ~ original_process_id if original_process_id else ""),
+    form_action="/renovar/" ~ (original_process_id ~ "/" if original_process_id else "") ~ type_key,
+    submit_text="Enviar Renovação",
+    errors=errors
+) }}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/upload-handlers.js"></script>
+{% endblock %}

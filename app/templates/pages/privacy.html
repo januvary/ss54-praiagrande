@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% from "components/ui_components.html" import page_header, callout %}
+
+{% block title %}Política de Privacidade - SS-54{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-8 sm:py-12 px-4">
+    <div class="w-full max-w-4xl mx-auto">
+        {{ page_header(
+        title="Política de Privacidade",
+        subtitle="Sistema de Assistência Farmacêutica de Praia Grande - SS-54",
+        back_url="/",
+        back_text="Início"
+        ) }}
+
+        {{ callout("<strong>Última atualização:</strong> 23 de Fevereiro de 2026", color="accent", margin="mb-4
+        sm:mb-8") }}
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 space-y-6 sm:space-y-8">
+
+            <!-- 1. Controlador de Dados -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    1. Identificação do Controlador de Dados
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <ul class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 ml-4">
+                        <li><strong>Controlador:</strong> Prefeitura Municipal de Praia Grande</li>
+                        <li><strong>Orgão Responsável:</strong> Secretaria de Saúde Pública (SESAP) - Divisão de
+                            Assistência
+                            Farmacêutica</li>
+                        <li><strong>Endereço:</strong> Av. Presidente Kennedy, 8850, Vila Mirim, Praia Grande, SP</li>
+                        <li><strong>SESAP:</strong> (13) 3496-2400</li>
+                        <li><strong>Assistência Farmacêutica:</strong> (13) 3496-2469</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 2. Dados Coletados -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    2. Dados Pessoais Coletados
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Para gestão de solicitações SS-54 (medicamentos, nutrição, bombas de infusão), coletamos:
+                    </p>
+
+                    <h3 class="text-sm sm:text-lg font-semibold text-primary mb-1.5 sm:mb-2">Dados do Responsável:</h3>
+                    <ul
+                        class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                        <li><strong>Email:</strong> Para autenticação e comunicações</li>
+                        <li><strong>Telefone/WhatsApp:</strong> Para contato sobre o processo</li>
+                        <li><strong>Endereço IP:</strong> Para fins de segurança</li>
+                    </ul>
+
+                    <h3 class="text-sm sm:text-lg font-semibold text-primary mb-1.5 sm:mb-2">Dados do Paciente:</h3>
+                    <ul
+                        class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                        <li><strong>Nome Completo:</strong> Identificação do paciente</li>
+                        <li><strong>Data de Nascimento:</strong> Identificação do paciente</li>
+                        <li><strong>Documentos Pessoais:</strong> RG, CPF</li>
+                        <li><strong>Documentos Médicos:</strong> Receitas, laudos</li>
+                    </ul>
+
+                    {{ callout("Documentos de saúde são dados sensíveis nos termos do Art. 11 da LGPD e recebem proteção
+                    especial.", color="red") }}
+                </div>
+            </div>
+
+            <!-- 3. Finalidades -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    3. Base Legal
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Seus dados são processados
+                        com fundamento em:
+                    </p>
+                    <ul
+                        class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                        <li><strong>Art. 7º, II</strong> — cumprimento de obrigação legal</li>
+                        <li><strong>Art. 7º, III</strong> — execução de políticas públicas</li>
+                        <li><strong>Art. 7º, VIII</strong> — tutela da saúde</li>
+                    </ul>
+
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Para dados sensíveis de saúde: <strong>Art. 11, II, alíneas "b" e "f"</strong> (políticas
+                        públicas e tutela da saúde).
+                        O Art. 11, §4º autoriza expressamente o compartilhamento de dados de saúde para fins de
+                        assistência farmacêutica.
+                    </p>
+
+                    {{ callout("A assistência farmacêutica no SUS é um direito constitucional (CF/1988, Art. 196), não
+                    uma relação contratual.
+                    Você pode exercer seus direitos de titular a qualquer momento pelos canais indicados ao final desta
+                    política.",
+                    color="blue") }}
+                </div>
+            </div>
+
+            <!-- 4. Retenção de Dados -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    4. Período de Retenção de Dados
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Prazos de retenção de dados:
+                    </p>
+                    <ul
+                        class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                        <li><strong>Processos autorizados:</strong> 5 anos após autorização (Decreto 20.910/1932; CIT
+                            dez/2024)</li>
+                        <li><strong>Processos negados:</strong> 5 anos após indeferimento (Decreto 20.910/1932)</li>
+                        <li><strong>Rascunhos incompletos:</strong> 90 dias após última atividade (Princípio da
+                            minimização - LGPD Art. 6º, III)</li>
+                        <li><strong>Logs de auditoria:</strong> 5 anos (Prescrição administrativa e civil)</li>
+                        <li><strong>Documentos médicos:</strong> Guarda permanente (Resolução CFM 1.821/2007, Art. 7º)
+                        </li>
+                    </ul>
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Após os prazos acima, os dados são anonimizados ou eliminados de forma segura, salvo exigência
+                        legal em contrário.
+                    </p>
+
+                    {{ callout("A Lei 13.787/2018 estabelece prazo mínimo de 20 anos a partir do último registro. A
+                    Resolução CFM 1.821/2007
+                    determina guarda permanente para prontuários eletrônicos. Adotamos o critério mais conservador.",
+                    color="blue") }}
+
+                </div>
+            </div>
+
+            <!-- 5. Direitos do Titular -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    5. Seus Direitos (Art. 18 da LGPD)
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Você tem direito a: confirmação de tratamento, acesso, correção, eliminação (quando legalmente
+                        permitida),
+                        portabilidade, oposição, e informação sobre compartilhamentos.
+                    </p>
+
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Você também pode: peticionar à ANPD contra o controlador (Art. 18, §1º), recorrer ao Procon
+                        (Art. 18, §8º),
+                        e solicitar revisão de decisões automatizadas (Art. 20).
+                    </p>
+
+                    {{ callout("Alguns direitos podem ser limitados quando o tratamento for necessário para cumprimento
+                    de obrigação legal.",
+                    color="yellow") }}
+
+                    <h3 class="text-sm sm:text-lg font-semibold text-primary mb-1.5 sm:mb-2 mt-4">Dados de pacientes
+                        falecidos:</h3>
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Conforme Nota Técnica nº 3/2023 da ANPD, a LGPD não se aplica a dados de pessoas falecidas
+                        (Código Civil, Art. 6º).
+                        Os documentos médicos permanecem sob guarda legal (Lei 13.787/2018). Herdeiros podem solicitar
+                        acesso mediante documentação
+                        comprobatória, com base no direito sucessório.
+                    </p>
+
+                </div>
+            </div>
+
+
+            <!-- 6. Compartilhamento de Dados -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    6. Compartilhamento de Dados
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Os dados são compartilhados
+                        exclusivamente com o <strong>Departamento Regional de Saúde (DRS-IV)</strong> para análise e
+                        avaliação técnica das solicitações de medicamentos, nutrição e bombas, conforme propósito do
+                        sistema.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 7. Medidas de Segurança -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    7. Medidas de Segurança
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Adotamos medidas de segurança incluindo: autenticação por link seguro, criptografia em trânsito
+                        (TLS),
+                        sanitização de arquivos enviados, proteção contra ataques web, e logs de auditoria com
+                        rastreabilidade.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 8. Cookies -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    8. Política de Cookies
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Utilizamos apenas cookies estritamente necessários: sessão de autenticação (JWT, 7 dias),
+                        seleção de paciente (7 dias)
+                        e proteção CSRF. Não há cookies de marketing ou analytics.
+                    </p>
+
+                    {{ callout("Cookies estritamente necessários não exigem consentimento conforme orientação da ANPD
+                    (Guia Orientativo, outubro/2022).",
+                    color="blue") }}
+                </div>
+            </div>
+
+            <!-- 9. Transferência Internacional de Dados -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    9. Transferência Internacional de Dados
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base mb-3 sm:mb-4">
+                        Todos os dados são armazenados em servidor local da Secretaria de Saúde, em território
+                        brasileiro,
+                        sob controle exclusivo da Prefeitura. Não há transferência internacional de dados nos termos do
+                        Art. 33 da LGPD.
+                    </p>
+                </div>
+            </div>
+
+
+            <!-- 11. Legislação Aplicável -->
+            <div>
+                <h2 class="font-heading text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    10. Legislação Aplicável
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 text-sm sm:text-base">
+                        Esta política está em conformidade com:
+                    </p>
+                    <ul
+                        class="list-disc list-inside text-slate-700 text-sm sm:text-base space-y-1 sm:space-y-2 mt-3 sm:mt-4">
+                        <li><strong>Lei nº 13.709/2018</strong> - Lei Geral de Proteção de Dados (LGPD)</li>
+                        <li><strong>Constituição Federal</strong> - Art. 5º, X e XII; Art. 196</li>
+                        <li><strong>Marco Civil da Internet</strong> - Lei nº 12.965/2014</li>
+                        <li><strong>Lei Complementar Municipal nº 15/1992</strong> - Estatuto dos Servidores Públicos
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div>
+                <h2 class="text-base sm:text-xl font-bold text-primary mb-3 sm:mb-4">
+                    Contato
+                </h2>
+                <div class="space-y-4">
+                    {% call callout(color="orange", margin="") %}
+                    <h3 class="text-sm font-semibold text-orange-900 mb-2">
+                        Solicitações sobre seus Dados
+                    </h3>
+                    <p class="text-xs text-orange-900 mb-2">
+                        Solicitações sobre seus dados no SS-54:
+                    </p>
+                    <ul class="text-xs text-orange-800 space-y-1 mt-2">
+                        <li><strong>Telefone:</strong> (13) 3496-2469</li>
+                        <li><strong>Endereço:</strong> Av. Presidente Kennedy, 8850, Vila Mirim</li>
+                        <li><strong>Horário:</strong> Segunda a sexta, 8h às 17h</li>
+                    </ul>
+                    {% endcall %}
+
+                    {% call callout(color="gray", margin="") %}
+                    <h3 class="text-sm font-semibold text-gray-900 mb-2">
+                        Encarregado de Proteção de Dados (DPO)
+                    </h3>
+                    <ul class="text-xs text-gray-800 space-y-1 mt-2">
+                        <li><strong>Email:</strong> protecaodedados@praiagrande.sp.gov.br</li>
+                    </ul>
+                    <p class="text-xs text-gray-800 mt-2">
+                        <strong>Ouvidoria Municipal:</strong> 162 | (13) 3496-2281
+                    </p>
+                    {% endcall %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="text-center mt-6 sm:mt-8 text-xs sm:text-sm text-slate-500">
+            <p>
+                Esta política foi atualizada em 23 de Fevereiro de 2026 e está em conformidade
+                com a Lei Geral de Proteção de Dados Pessoais (LGPD) - Lei nº 13.709/2018.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "components/ui_components.html" import page_header %}
+
+{% block title %}Requisitos de Exames - SS-54{% endblock %}
+
+{% block content %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        {{ page_header(
+            title="Requisitos de Exames",
+            subtitle="Exames necessários para solicitação de medicamentos",
+            back_url="/dashboard"
+        ) }}
+
+        {% for section_key, section in medication_exam_requirements.items() %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-3 sm:mb-4">
+            <h2 class="font-heading text-base sm:text-lg font-bold text-primary mb-3 sm:mb-4">
+                {{ section.title }}
+            </h2>
+            <div class="space-y-3 sm:space-y-4">
+                {% for category in section.categories %}
+                <div>
+                    <h3 class="font-semibold text-sm sm:text-base text-slate-800 mb-1.5 sm:mb-2">
+                        {{ category.name }}
+                    </h3>
+                    <ul class="space-y-1 text-xs sm:text-sm text-slate-600">
+                        {% for requirement in category.requirements %}
+                        <li class="flex items-start gap-2">
+                            <span class="text-accent mt-0.5">•</span>
+                            <span>{{ requirement | replace("Primeira Solicitação:", "<strong>Primeira Solicitação:</strong>") | replace("Renovação:", "<strong>Renovação:</strong>") | safe }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <p class="text-xs text-slate-500 text-center mt-6">
+            Estes requisitos estão sujeitos a alterações. Consulte sempre a legislação vigente.
+        </p>
+    </div>
+</section>
+{% endblock %}

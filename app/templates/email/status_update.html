@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualização do seu processo - SS-54</title>
+</head>
+
+<body
+    style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f9f9f9; border-radius: 10px; padding: 30px; margin-top: 20px;">
+        <h1 style="color: #2c5282; margin-bottom: 20px;">Para {{ user_name }} ou responsáveis</h1>
+
+        <p style="font-size: 16px; margin-bottom: 20px;">
+            Seu processo <strong>{{ protocol_number }}</strong> teve uma atualização.
+        </p>
+
+        <div
+            style="background-color: #e8f4fd; border-left: 4px solid #2c5282; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Novo status:</p>
+            <p style="margin: 0; font-size: 18px; font-weight: bold; color: #2c5282;">{{ status_label }}</p>
+        </div>
+
+        {% if status_description %}
+        <div
+            style="background-color: #fff; border: 1px solid #e2e8f0; padding: 15px; margin: 20px 0; border-radius: 8px;">
+            <p style="margin: 0; font-size: 14px; color: #4a5568;">{{ status_description | safe }}</p>
+        </div>
+        {% endif %}
+
+        {% if note %}
+        <div
+            style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #92400e; font-weight: bold;">Mensagem da equipe:</p>
+            <p style="margin: 0; font-size: 14px; color: #4a5568;">{{ note }}</p>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ process_url }}" style="background-color: #2c5282; 
+                      color: white; 
+                      padding: 15px 30px; 
+                      text-decoration: none; 
+                      border-radius: 5px; 
+                      font-weight: bold; 
+                      display: inline-block;">
+                Ver Meu Processo
+            </a>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #999;">
+            Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+            <a href="{{ process_url }}" style="color: #2c5282; word-break: break-all;">{{ process_url }}</a>
+        </p>
+    </div>
+</body>
+
+</html>

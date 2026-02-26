@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Verificando... - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/ui_components.html" import spinner %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center py-8 sm:py-12 px-4">
+    <div class="w-full max-w-md text-center">
+        {% if success %}
+        <!-- Success State -->
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+
+            <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">
+                Login realizado!
+            </h1>
+
+            <p class="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
+                Você será redirecionado automaticamente...
+            </p>
+
+            <div class="mx-auto">{{ spinner() }}</div>
+        </div>
+
+        <script nonce="{{ csp_nonce }}">
+            setTimeout(() => {
+                window.location.href = "{{ redirect_url | default('/dashboard') }}";
+            }, 1500);
+        </script>
+
+        {% else %}
+        <!-- Error State -->
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+
+            <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">
+                Link inválido
+            </h1>
+
+            <p class="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
+                {{ error_message | default("Este link expirou ou já foi usado.") }}
+            </p>
+
+            <a href="/login" class="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white py-2.5 sm:py-3 px-5 sm:px-6 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                Solicitar novo acesso
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

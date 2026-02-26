@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Renovar - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/type_selection_grid.html" import render_type_grid %}
+{{ render_type_grid(
+process_types=process_types,
+process_type_titles=process_type_titles,
+back_url="/dashboard",
+card_base_url="/renovar",
+title="Renovar Processo",
+subtitle="Selecione o tipo do processo que deseja renovar",
+expired_processes=expired_processes,
+show_new_section_header=true
+) }}
+{% endblock %}

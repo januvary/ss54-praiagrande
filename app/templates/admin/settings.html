@@ -1,0 +1,322 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Configurações - Admin SS-54{% endblock %}
+
+{% block content %}
+<div>
+    <h1 class="text-3xl font-bold text-slate-900">Configurações de Email</h1>
+    <p class="text-slate-600 mt-1 mb-8">Configure os endereços de email do sistema</p>
+
+    {% if success %}
+    <div class="mt-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+        {{ success }}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="mt-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Emails DRS</h2>
+        <p class="text-sm text-slate-600 mb-4">Configure os destinatários de emails para o DRS (Departamento Regional de Saúde).</p>
+
+        <form action="/admin/settings" method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email Renovação</label>
+                        <input
+                            type="email"
+                            name="drs_renovacao_email"
+                            value="{{ drs_renovacao_email }}"
+                            required
+                            class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                            placeholder="drs-renovacao@saude.sp.gov.br">
+                        <p class="text-xs text-slate-600 mt-2">Email para processos de renovação</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email Solicitação</label>
+                        <input
+                            type="email"
+                            name="drs_solicitacao_email"
+                            value="{{ drs_solicitacao_email }}"
+                            required
+                            class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                            placeholder="drs-solicitacao@saude.sp.gov.br">
+                        <p class="text-xs text-slate-600 mt-2">Email para primeiras solicitações</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email From</label>
+                        <input
+                            type="email"
+                            name="emails_from_email"
+                            value="{{ emails_from_email }}"
+                            required
+                            class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                            placeholder="noreply@ss54.gov.br">
+                        <p class="text-xs text-slate-600 mt-2">Email remetente dos envios</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome From</label>
+                        <input
+                            type="text"
+                            name="emails_from_name"
+                            value="{{ emails_from_name }}"
+                            required
+                            class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                            placeholder="SS-54 Assistência Farmacêutica de Praia Grande">
+                        <p class="text-xs text-slate-600 mt-2">Nome do remetente</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end pt-4 border-t border-slate-200">
+                <button
+                    type="submit"
+                    class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    data-loading-text="Salvando...">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Salvar Configurações
+                </button>
+            </div>
+        </form>
+    </div>
+
+<!-- ========================================
+     Section 2: Master Scheduler Controls
+     ======================================== -->
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-lg font-semibold text-slate-900 mb-4">Controles do Agendador</h2>
+    <p class="text-sm text-slate-600 mb-4">Configure o agendador principal do sistema.</p>
+
+    <div class="p-4 bg-slate-50 rounded-lg mb-4">
+        <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="scheduler_enabled" 
+                   {{ 'checked' if scheduler_enabled else '' }}
+                   class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+            <span class="font-medium text-slate-700">Habilitar Agendador</span>
+        </label>
+        <p class="text-xs text-slate-600 mt-2 ml-8">
+            Quando desabilitado, nenhuma tarefa automática será executada.
+        </p>
+    </div>
+
+    <div class="p-4 bg-slate-50 rounded-lg" id="timezone-setting">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Fuso Horário</label>
+        <select name="scheduler_timezone" 
+                class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <option value="America/Sao_Paulo" {{ 'selected' if scheduler_timezone == 'America/Sao_Paulo' else '' }}>America/Sao_Paulo (UTC-3)</option>
+            <option value="UTC" {{ 'selected' if scheduler_timezone == 'UTC' else '' }}>UTC (UTC+0)</option>
+        </select>
+        <p class="text-xs text-slate-600 mt-2">Alterar o fuso horário reiniciará o agendador.</p>
+    </div>
+</div>
+
+<!-- ========================================
+     Section 3: Job Timing & Toggles
+     ======================================== -->
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6" id="job-timings-section">
+    <h2 class="text-lg font-semibold text-slate-900 mb-4">Horários das Tarefas</h2>
+    <p class="text-sm text-slate-600 mb-4">Configure quando cada tarefa automática deve ser executada.</p>
+
+    <!-- Batch Send -->
+    <div class="p-4 border border-slate-200 rounded-lg mb-4">
+        <label class="flex items-center gap-3 cursor-pointer mb-3">
+            <input type="checkbox" name="batch_send_enabled" 
+                   {{ 'checked' if batch_send_enabled else '' }}
+                   class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+            <span class="font-medium text-slate-700">Envio Automático de Lotes</span>
+        </label>
+        <div class="flex items-center gap-3 ml-8">
+            <label class="text-sm text-slate-600">Horário:</label>
+            <input type="number" name="batch_send_hour" 
+                   value="{{ batch_send_hour }}" min="0" max="23"
+                   class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500">
+            <span class="text-sm text-slate-500">:00</span>
+        </div>
+        <p class="text-xs text-slate-600 mt-2 ml-8">
+            Envia processos completos ao DRS a cada intervalo configurado.
+        </p>
+    </div>
+
+    <!-- DRS Follow Up -->
+    <div class="p-4 border border-slate-200 rounded-lg mb-4">
+        <label class="flex items-center gap-3 cursor-pointer mb-3">
+            <input type="checkbox" name="drs_followup_enabled" 
+                   {{ 'checked' if drs_followup_enabled else '' }}
+                   class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+            <span class="font-medium text-slate-700">Acompanhamento DRS</span>
+        </label>
+        <div class="flex items-center gap-3 ml-8">
+            <label class="text-sm text-slate-600">Horário:</label>
+            <input type="number" name="drs_followup_hour" 
+                   value="{{ drs_followup_hour }}" min="0" max="23"
+                   class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500">
+            <span class="text-sm text-slate-500">:00</span>
+        </div>
+        <p class="text-xs text-slate-600 mt-2 ml-8">
+            Envia lembretes ao DRS nos prazos configurados.
+        </p>
+    </div>
+
+    <!-- Auto Expire -->
+    <div class="p-4 border border-slate-200 rounded-lg">
+        <label class="flex items-center gap-3 cursor-pointer mb-3">
+            <input type="checkbox" name="auto_expire_enabled" 
+                   {{ 'checked' if auto_expire_enabled else '' }}
+                   class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+            <span class="font-medium text-slate-700">Expiração Automática</span>
+        </label>
+        <div class="flex items-center gap-3 ml-8">
+            <label class="text-sm text-slate-600">Horário:</label>
+            <input type="number" name="auto_expire_hour" 
+                   value="{{ auto_expire_hour }}" min="0" max="23"
+                   class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500">
+            <span class="text-sm text-slate-500">:00</span>
+        </div>
+        <p class="text-xs text-slate-600 mt-2 ml-8">
+            Expira processos autorizados após o período de validade.
+        </p>
+    </div>
+</div>
+
+<!-- ========================================
+     Section 4: Business Rules
+     ======================================== -->
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6" id="business-rules-section">
+    <h2 class="text-lg font-semibold text-slate-900 mb-4">Regras de Negócio</h2>
+    <p class="text-sm text-slate-600 mb-4">Configure as regras de negócio das tarefas automatizadas.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Batch Interval -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Intervalo entre Remessas (dias)</label>
+            <input type="number" name="batch_interval_days" 
+                   value="{{ batch_interval_days }}" min="1" max="365"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <p class="text-xs text-slate-600 mt-2">Dias entre envios automáticos de lotes ao DRS</p>
+        </div>
+
+        <!-- DRS Deadline Days -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Prazos DRS (dias)</label>
+            <input type="text" name="drs_deadline_days" 
+                   value="{{ drs_deadline_days | join(',') }}"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                   placeholder="30,60">
+            <p class="text-xs text-slate-600 mt-2">Números separados por vírgula (ex: 30,60)</p>
+        </div>
+
+        <!-- Auth Expiry Days -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Expiração da Autorização (dias)</label>
+            <input type="number" name="auth_expiry_days" 
+                   value="{{ auth_expiry_days }}" min="1" max="730"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <p class="text-xs text-slate-600 mt-2">Período de validade da autorização padrão</p>
+        </div>
+
+        <!-- Auth Expiry Warning Days -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Aviso de Expiração (dias antes)</label>
+            <input type="number" name="auth_expiry_warning_days" 
+                   value="{{ auth_expiry_warning_days }}" min="1" max="180"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <p class="text-xs text-slate-600 mt-2">Mostrar aviso no calendário X dias antes da expiração</p>
+        </div>
+
+        <!-- Nutrição Expiry Days -->
+        <div class="p-4 bg-slate-50 rounded-lg md:col-span-2">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Expiração Nutrição (dias)</label>
+            <input type="number" name="nutricao_expiry_days" 
+                   value="{{ nutricao_expiry_days }}" min="1" max="730"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <p class="text-xs text-slate-600 mt-2">Período de validade da autorização para Nutrição</p>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================
+     Section 5: Data Retention
+     ======================================== -->
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6" id="data-retention-section">
+    <h2 class="text-lg font-semibold text-slate-900 mb-4">Retenção de Dados (LGPD)</h2>
+    <p class="text-sm text-slate-600 mb-4">Configure a retenção de dados conforme políticas de privacidade.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Data Retention Enabled -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="data_retention_enabled" 
+                       {{ 'checked' if data_retention_enabled else '' }}
+                       class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                <span class="font-medium text-slate-700">Habilitar Limpeza Automática</span>
+            </label>
+            <p class="text-xs text-slate-600 mt-2 ml-8">
+                Remove processos antigos automaticamente
+            </p>
+        </div>
+
+        <!-- Data Retention Years -->
+        <div class="p-4 bg-slate-50 rounded-lg">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Período de Retenção (anos)</label>
+            <input type="number" name="data_retention_years" 
+                   value="{{ data_retention_years }}" min="1" max="50"
+                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+            <p class="text-xs text-slate-600 mt-2">Anos para manter processos após conclusão</p>
+        </div>
+    </div>
+</div>
+
+    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div class="flex">
+            <svg class="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="ml-3">
+                <p class="text-sm text-amber-800">
+                    As configurações são salvas no banco de dados e substituem as variáveis de ambiente. Alterações entram em vigor imediatamente.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const schedulerEnabled = document.querySelector('input[name="scheduler_enabled"]');
+    const jobTimingsSection = document.getElementById('job-timings-section');
+    const businessRulesSection = document.getElementById('business-rules-section');
+    const dataRetentionSection = document.getElementById('data-retention-section');
+    
+    function toggleSections() {
+        const isEnabled = schedulerEnabled.checked;
+        
+        [jobTimingsSection, businessRulesSection, dataRetentionSection].forEach(section => {
+            if (section) {
+                const inputs = section.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    input.disabled = !isEnabled;
+                    input.classList.toggle('opacity-50', !isEnabled);
+                });
+            }
+        });
+    }
+    
+    schedulerEnabled.addEventListener('change', toggleSections);
+    toggleSections(); // Initial state
+});
+</script>
+{% endblock %}
