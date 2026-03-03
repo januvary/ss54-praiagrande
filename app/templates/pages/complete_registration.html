@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Complete o Cadastro - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/ui_components.html" import error_alert, spinner %}
+<section
+    class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center py-8 sm:py-12 px-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 sm:p-8">
+            <div class="text-center mb-6 sm:mb-8">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-1 sm:mb-2">
+                    Complete o Cadastro
+                </h1>
+                <p class="text-slate-600 text-xs sm:text-sm">
+                    Precisamos de algumas informações para continuar
+                </p>
+            </div>
+
+            {{ error_alert(errors or error) }}
+
+            <form action="/complete-registration" method="POST" class="space-y-4 sm:space-y-6" data-loading>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div>
+                    <label for="name" class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                        Nome do Paciente <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="name" name="name" required autocomplete="name"
+                        class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                        placeholder="Nome completo"
+                        value="{{ form_name | default('') }}">
+                </div>
+
+                <div>
+                    <label for="date_of_birth" class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                        Data de Nascimento do Paciente <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="date_of_birth" name="date_of_birth" required
+                        class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                        placeholder="DD/MM/AAAA"
+                        value="{{ form_dob | default('') }}">
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                        Telefone / WhatsApp <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="phone" name="phone" required autocomplete="tel" placeholder="(00) 00000-0000"
+                        maxlength="15"
+                        class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all"
+                        value="{{ form_phone | default('') }}">
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-3">
+                    <p class="text-xs text-slate-500 mb-1">Email cadastrado:</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700">{{ email }}</p>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-accent hover:bg-accent-hover text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2">
+                    <span data-button-text>Continuar</span>
+                    <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script type="module" nonce="{{ csp_nonce }}">
+import { setupDateInput } from '/static/js/date-input.js';
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Phone mask
+    document.getElementById('phone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+        if (value.length > 6) {
+            e.target.value = `(${value.slice(0,2)}) ${value.slice(2,7)}-${value.slice(7)}`;
+        } else if (value.length > 2) {
+            e.target.value = `(${value.slice(0,2)}) ${value.slice(2)}`;
+        } else if (value.length > 0) {
+            e.target.value = `(${value}`;
+        }
+    });
+
+    // Setup auto-formatting and validation for date input
+    setupDateInput('date_of_birth');
+
+    // Initialize Flatpickr for date input
+    flatpickr("#date_of_birth", {
+        dateFormat: "d/m/Y",
+        locale: "pt",
+        allowInput: true,
+        maxDate: "today"
+    });
+});
+</script>
+
+{% endblock %}

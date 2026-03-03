@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ email_title }}</title>
+</head>
+
+<body
+    style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f9f9f9; border-radius: 2px; padding: 30px; margin-top: 20px;">
+        <h1 style="color: #2c5282; margin-bottom: 10px;">{{ email_title }}</h1>
+
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Enviado em {{ sent_date }}
+        </p>
+
+        <div style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 2px; overflow-x: auto;">
+            <table style="width: 100%; min-width: 600px; border-collapse: collapse; font-size: 14px; white-space: nowrap;">
+                <thead>
+                    <tr style="background-color: #2c5282; color: white;">
+                        <th style="padding: 12px 10px; text-align: left; border-bottom: 2px solid #1a365d;">Nome do
+                            Paciente</th>
+                        <th style="padding: 12px 10px; text-align: left; border-bottom: 2px solid #1a365d;">Tipo</th>
+                        <th style="padding: 12px 10px; text-align: left; border-bottom: 2px solid #1a365d;">Descrição
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for process in processes %}
+                    <tr style="background-color: {% if loop.index is odd %}#ffffff{% else %}#f7fafc{% endif %};">
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">{{ process.patient_name or 'Não
+                            informado' }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">{{ process.type_label }}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">{{ process.description or '' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+            <strong>Total de processos:</strong> {{ processes|length }}
+        </p>
+
+        <p style="font-size: 14px; color: #666; margin-top: 15px;">
+            Segue em anexo PDF de cada processo.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,202 @@
+{#
+    Document Row Macro
+
+    Usage:
+    {% from "components/document_row.html" import document_row %}
+    {{ document_row(doc, download_url="/documentos", show_validate_button=false, show_validation_status=true, doc_type_title=doc_type_titles[doc.type_value], validation_colors=validation_colors, validation_labels=validation_labels, color_classes=color_classes) }}
+
+    Parameters:
+    - doc: document object with fields: id, original_filename, mime_type, type_value, file_size, uploaded_at, validation_status, validation_notes
+    - download_url: base URL for downloads (e.g., "/documentos" or "/admin/documents")
+    - show_validate_button: boolean (default false) - shows inline validation buttons when true
+    - show_validation_status: boolean (default true) - shows validation status badge when true
+    - doc_type_title: optional title for document type (looked up from doc_type_titles)
+    - csrf_token: CSRF token for admin validation forms
+    - validation_colors: dict mapping status to color names
+    - validation_labels: dict mapping status to display labels
+    - color_classes: dict mapping color names to Tailwind classes
+#}
+
+{% macro _validation_controls(doc, wrapper_class, icon_size_class, show_validation_status, show_validate_button, csrf_token, cc, status_color, status_label) %}
+<div id="validation-controls-{{ doc.id }}" class="{{ wrapper_class }}">
+    {% if show_validation_status %}
+    <span class="text-xs px-2 py-1 rounded {{ cc.get(status_color, cc.get('yellow', 'bg-yellow-100 text-yellow-700')) }}">
+        {{ status_label }}
+    </span>
+    {% endif %}
+
+    {% if show_validate_button %}
+    <button
+        type="button"
+        hx-post="/admin/documents/{{ doc.id }}/validate-quick"
+        hx-vals='{"status": "{% if doc.validation_status == 'valid' %}pending{% else %}valid{% endif %}"}'
+        hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'
+        hx-target="#validation-controls-{{ doc.id }}"
+        hx-swap="outerHTML"
+        class="p-1 rounded transition-all {% if doc.validation_status == 'valid' %}bg-green-500 text-white{% else %}text-green-600 hover:bg-green-100{% endif %}"
+        title="{% if doc.document_type == 'outro' %}{% if doc.validation_status == 'valid' %}Remover do PDF{% else %}Incluir no PDF{% endif %}{% else %}{% if doc.validation_status == 'valid' %}Voltar para Pendente{% else %}Marcar como válido{% endif %}{% endif %}"
+    >
+        <svg class="{{ icon_size_class }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+    </button>
+
+    {% if doc.document_type != 'outro' %}
+    <button
+        type="button"
+        hx-post="/admin/documents/{{ doc.id }}/validate-quick"
+        hx-vals='{"status": "{% if doc.validation_status == 'invalid' %}pending{% else %}invalid{% endif %}"}'
+        hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'
+        hx-target="#validation-controls-{{ doc.id }}"
+        hx-swap="outerHTML"
+        class="p-1 rounded transition-all {% if doc.validation_status == 'invalid' %}bg-red-500 text-white{% else %}text-red-600 hover:bg-red-100{% endif %}"
+        title="{% if doc.validation_status == 'invalid' %}Voltar para Pendente{% else %}Marcar como inválido{% endif %}"
+    >
+        <svg class="{{ icon_size_class }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+    {% endif %}
+
+    <button
+        type="button"
+        data-action="toggle-note-form"
+        data-doc-id="{{ doc.id }}"
+        class="p-1 rounded transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+        title="Editar observação"
+    >
+        <svg class="{{ icon_size_class }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+    </button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro document_row(doc, download_url="/documentos", show_validate_button=false, show_validation_status=true, doc_type_title=none, csrf_token="", partial="full") %}
+{% set vc = validation_colors if validation_colors is defined else {} %}
+{% set vl = validation_labels if validation_labels is defined else {} %}
+{% set cc = color_classes if color_classes is defined else {} %}
+{% set doc_type = doc.type_value if doc.type_value is defined else doc.document_type %}
+{% set status_color = vc.get(doc.validation_status, 'yellow') %}
+{% set status_label = vl.get(doc.validation_status, 'Pendente') %}
+
+{% if partial == "validation_only" %}
+{{ _validation_controls(doc, "flex items-center gap-2", "w-5 h-5", show_validation_status, show_validate_button, csrf_token, cc, status_color, status_label) }}
+{% else %}
+<div class="document-row" id="doc-row-{{ doc.id }}">
+    <div class="flex items-center gap-2 sm:gap-3 p-2 bg-slate-50 rounded-lg border border-slate-200">
+        <button type="button"
+            data-action="open-doc-viewer"
+            data-doc-id="{{ doc.id }}"
+            data-mime-type="{{ doc.mime_type }}"
+            data-filename="{{ doc.original_filename }}"
+            data-base-path="{{ download_url }}"
+            class="flex-shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent rounded">
+            {% if doc.mime_type and doc.mime_type.startswith('image/') %}
+            <img src="{{ download_url }}/{{ doc.id }}/download" alt="{{ doc.original_filename }}" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded border border-slate-200 hover:ring-2 hover:ring-accent transition-all">
+            {% elif doc.mime_type == 'application/pdf' %}
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded border border-slate-200 bg-red-50 flex items-center justify-center hover:ring-2 hover:ring-accent transition-all">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                </svg>
+            </div>
+            {% else %}
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded border border-slate-200 bg-slate-100 flex items-center justify-center hover:ring-2 hover:ring-accent transition-all">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            {% endif %}
+        </button>
+
+        <div class="flex-1 min-w-0">
+            <p class="text-xs sm:text-sm font-medium text-slate-700 truncate">{{ doc.original_filename }}</p>
+            <p class="text-xs text-slate-500">{{ doc_type_title or doc_type }} | {{ doc.file_size | filesizeformat }} | {{ doc.uploaded_at | date("%d/%m/%Y") }}</p>
+        </div>
+
+        {% if show_validation_status or show_validate_button %}
+        {{ _validation_controls(doc, "hidden sm:flex items-center gap-2", "w-4 h-4 sm:w-5 sm:h-5", show_validation_status, show_validate_button, csrf_token, cc, status_color, status_label) }}
+        {% endif %}
+
+        <button type="button"
+            data-action="open-doc-viewer"
+            data-doc-id="{{ doc.id }}"
+            data-mime-type="{{ doc.mime_type }}"
+            data-filename="{{ doc.original_filename }}"
+            data-base-path="{{ download_url }}"
+            class="text-slate-500 hover:text-slate-700 p-1 focus:outline-none focus:ring-2 focus:ring-accent rounded"
+            title="Visualizar">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+        </button>
+
+        <a href="{{ download_url }}/{{ doc.id }}/download" class="text-accent hover:text-accent-hover p-1" title="Baixar">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+        </a>
+    </div>
+
+    {% if show_validation_status %}
+    <div class="sm:hidden px-2 pb-2">
+        <span class="text-xs px-2 py-1 rounded {{ cc.get(status_color, cc.get('yellow', 'bg-yellow-100 text-yellow-700')) }}">
+            {{ status_label }}
+        </span>
+    </div>
+    {% endif %}
+
+    {% if show_validate_button %}
+    <div id="note-form-{{ doc.id }}" class="p-2 sm:p-3 mt-1 rounded-lg {% if doc.validation_notes %}bg-orange-50 border border-orange-200{% else %}bg-slate-50 border border-slate-200 hidden{% endif %}">
+        <form
+            hx-post="/admin/documents/{{ doc.id }}/validate-quick"
+            hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'
+            hx-target="#doc-row-{{ doc.id }}"
+            hx-swap="outerHTML"
+            class="space-y-2"
+        >
+            <input type="hidden" name="status" value="">
+            <label class="block text-xs sm:text-sm font-medium mb-1 {% if doc.validation_notes %}text-orange-800{% else %}text-slate-700{% endif %}">
+                <strong>{% if doc.validation_notes %}Observação:{% else %}Adicionar Observação:{% endif %}</strong>
+            </label>
+            <textarea
+                name="notes"
+                id="note-textarea-{{ doc.id }}"
+                rows="3"
+                class="w-full px-2 sm:px-3 py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 bg-white {% if doc.validation_notes %}border-orange-300 focus:border-orange-500{% else %}border-slate-300 focus:border-slate-500{% endif %}"
+                placeholder="Adicione uma observação sobre este documento..."
+                {% if doc.validation_notes %}readonly{% endif %}
+            >{{ doc.validation_notes or '' }}</textarea>
+            <div class="flex gap-2 {% if doc.validation_notes %}hidden{% endif %}" {% if doc.validation_notes %}id="note-buttons-{{ doc.id }}"{% endif %}>
+                <button
+                    type="submit"
+                    class="px-2 sm:px-3 py-1.5 text-white text-xs sm:text-sm rounded-lg hover:opacity-90 font-medium {% if doc.validation_notes %}bg-orange-600{% else %}bg-slate-800{% endif %}"
+                >
+                    Salvar
+                </button>
+                {% if not doc.validation_notes %}
+                <button
+                    type="button"
+                    data-action="toggle-note-form"
+                    data-doc-id="{{ doc.id }}"
+                    class="px-2 sm:px-3 py-1.5 bg-slate-200 text-slate-700 text-xs sm:text-sm rounded-lg hover:bg-slate-300 font-medium"
+                >
+                    Cancelar
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    {% elif doc.validation_notes %}
+    <div class="p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg mt-1">
+        <p class="text-xs sm:text-sm font-medium text-orange-800 mb-1">
+            <strong>Observação:</strong>
+        </p>
+        <p class="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap">{{ doc.validation_notes }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}

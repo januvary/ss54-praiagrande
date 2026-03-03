@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu Link de Acesso</title>
+</head>
+
+<body
+    style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f9f9f9; border-radius: 10px; padding: 30px; margin-top: 20px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">
+            Você solicitou acesso ao sistema <strong>{{ app_name }}</strong>.
+            Clique no botão abaixo para acessar sua conta:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ magic_link }}" style="background-color: #2c5282; 
+                      color: white; 
+                      padding: 15px 30px; 
+                      text-decoration: none; 
+                      border-radius: 5px; 
+                      font-weight: bold; 
+                      display: inline-block;">
+                Acessar Minha Conta
+            </a>
+        </div>
+
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+            <strong>Este link expira em {{ expires_minutes }} minutos.</strong>
+        </p>
+
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Se você não solicitou este acesso, pode ignorar este email com segurança.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #999;">
+            Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+            <a href="{{ magic_link }}" style="color: #2c5282; word-break: break-all;">{{ magic_link }}</a>
+        </p>
+    </div>
+</body>
+
+</html>

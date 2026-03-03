@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% from "components/ui_components.html" import page_header, empty_state, callout, spinner %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}Meus Dados - SS-54{% endblock %}
+
+{% block content %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-8 sm:py-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        {{ page_header(
+            title="Meus Dados",
+            subtitle="Acesse e exporte seus dados pessoais",
+            back_url="/dashboard",
+            action_url="/meus-dados/export",
+            action_text="Exportar Dados (ZIP)",
+            action_icon="download",
+            action_loading=True
+        ) }}
+
+        {% if success %}
+        {% if success == 'telefone_atualizado' %}
+        {{ callout("Telefone atualizado com sucesso!", color="green", margin="mb-6") }}
+        {% elif success == 'paciente_atualizado' %}
+        {{ callout("Dados do paciente atualizados com sucesso!", color="green", margin="mb-6") }}
+        {% endif %}
+        {% endif %}
+
+        {% if error %}
+        {{ callout(error, color="red", margin="mb-6") }}
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: User & Patients -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Account Data -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-4 sm:p-6">
+                    <h2 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Dados da Conta
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-600 mb-1">Email</label>
+                                <div class="bg-slate-50 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-slate-800">
+                                    {{ data_report.user.email }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-600 mb-1">Telefone</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-slate-50 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-slate-800">
+                                        {{ data_report.user.phone or 'Não informado' }}
+                                    </div>
+                                    <button type="button" data-action="open-phone-modal"
+                                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 sm:px-3 py-2 rounded-lg transition-all text-xs sm:text-sm font-medium">
+                                        Editar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-600 mb-1">Conta criada em</label>
+                                <div class="bg-slate-50 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-slate-800">
+                                    {{ data_report.user.created_at[:10] }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-600 mb-1">Último acesso</label>
+                                <div class="bg-slate-50 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base text-slate-800">
+                                    {% if data_report.user.last_login %}
+                                    {{ data_report.user.last_login[:10] }}
+                                    {% else %}
+                                    Não registrado
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-4 sm:p-6">
+                    <h2 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        Pacientes ({{ data_report.patients|length }})
+                    </h2>
+
+                    <div class="space-y-3 sm:space-y-4">
+                        {% for patient in data_report.patients %}
+                        <div class="border border-slate-200 rounded-lg p-3 sm:p-4 hover:border-accent/50 transition-all">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-semibold text-sm sm:text-base text-slate-900 mb-1 sm:mb-2 truncate">{{ patient.name }}</h3>
+                                    <div class="grid grid-cols-2 gap-1 sm:gap-2 text-xs sm:text-sm text-slate-600">
+                                        <div>
+                                            <span class="font-medium">Nasc:</span>
+                                            {% if patient.date_of_birth %}
+                                            {{ patient.date_of_birth[:10] }}
+                                            {% else %}
+                                            Não informada
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Processos:</span> {{ patient.process_count }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    data-action="open-patient-modal"
+                                    data-patient-id="{{ patient.id }}"
+                                    data-patient-name="{{ patient.name }}"
+                                    data-patient-dob="{{ patient.date_of_birth|date if patient.date_of_birth else '' }}"
+                                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all text-xs sm:text-sm font-medium flex-shrink-0">
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Processes -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-4 sm:p-6">
+                    <h2 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Processos ({{ data_report.processes|length }})
+                    </h2>
+
+                    {% if data_report.processes %}
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                        <table class="w-full text-xs sm:text-sm min-w-[500px]">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-2 sm:py-3 px-3 sm:px-4 font-semibold text-slate-700">Protocolo</th>
+                                    <th class="text-left py-2 sm:py-3 px-3 sm:px-4 font-semibold text-slate-700">Tipo</th>
+                                    <th class="text-left py-2 sm:py-3 px-3 sm:px-4 font-semibold text-slate-700">Status</th>
+                                    <th class="text-left py-2 sm:py-3 px-3 sm:px-4 font-semibold text-slate-700">Data</th>
+                                    <th class="text-center py-2 sm:py-3 px-3 sm:px-4 font-semibold text-slate-700">Docs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for process in data_report.processes[:10] %}
+                                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
+                                    <td class="py-2 sm:py-3 px-3 sm:px-4">
+                                        <a href="/processo/{{ process.id }}"
+                                            class="text-accent hover:underline font-medium">
+                                            {{ process.protocol_number }}
+                                        </a>
+                                    </td>
+                                    <td class="py-2 sm:py-3 px-3 sm:px-4 text-slate-700">
+                                        {{ process_type_titles.get(process.type, process.type) }}
+                                    </td>
+                                    <td class="py-2 sm:py-3 px-3 sm:px-4">
+                                        {% with status=process.status, status_labels=status_labels %}
+                                        {% include "components/status_badge.html" %}
+                                        {% endwith %}
+                                    </td>
+                                    <td class="py-2 sm:py-3 px-3 sm:px-4 text-slate-600">{{ process.created_at[:10] }}</td>
+                                    <td class="py-2 sm:py-3 px-3 sm:px-4 text-center">
+                                        <span
+                                            class="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-800 font-semibold text-xs sm:text-sm">
+                                            {{ process.document_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if data_report.processes|length > 10 %}
+                    <div class="mt-3 sm:mt-4 text-center">
+                        <p class="text-xs sm:text-sm text-slate-600">
+                            Mostrando 10 de {{ data_report.processes|length }} processos
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    {{ empty_state("Nenhum processo encontrado", padding="py-6 sm:py-8") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Info & Legal -->
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-100 p-4 sm:p-6">
+                    <h2 class="font-heading text-base sm:text-lg font-bold text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Atividades Recentes
+                    </h2>
+
+                    {% if data_report.recent_activities %}
+                    <div class="space-y-2">
+                        {% for activity in data_report.recent_activities %}
+                        <div class="text-xs border-b border-slate-100 pb-2">
+                            <p class="text-slate-700">{{ activity.description }}</p>
+                            <p class="text-slate-500 mt-1">
+                                {{ activity.created_at|date("%d/%m/%Y %H:%M") }}
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {{ render_pagination("/meus-dados", activity_pagination, style="user") }}
+                    {% else %}
+                    {{ empty_state("Nenhuma atividade recente") }}
+                    {% endif %}
+                </div>
+
+                <!-- Back to Dashboard -->
+                <a href="/dashboard"
+                    class="block bg-slate-100 hover:bg-slate-200 text-slate-700 text-center font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all text-sm sm:text-base">
+                    ← Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-slate-500">
+            <p>
+                Relatório gerado em {{ data_report.report_generated_at[:19].replace('T', ' ') }}
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Edit Phone Modal -->
+<div id="editPhoneModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-5 sm:p-6">
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4">Editar Telefone</h3>
+
+        <form method="POST" action="/meus-dados/atualizar-telefone" class="space-y-3 sm:space-y-4" data-loading>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                <input type="tel" name="phone" id="modalPhone" value="{{ data_report.user.phone or '' }}"
+                    placeholder="(13) 99999-9999"
+                    class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all">
+            </div>
+
+            <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
+                <button type="button" data-action="close-phone-modal"
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-accent hover:bg-accent/90 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all flex items-center justify-center text-sm">
+                    <span data-button-text>Salvar</span>
+                    <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Patient Modal -->
+<div id="editPatientModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-5 sm:p-6">
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4">Editar Paciente</h3>
+
+        <form method="POST" action="/meus-dados/atualizar-paciente" class="space-y-3 sm:space-y-4" data-loading>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="patient_id" id="modalPatientId">
+
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Nome Completo</label>
+                <input type="text" name="name" id="modalPatientName" required
+                    class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Data de Nascimento</label>
+                <input type="text" name="date_of_birth" id="modalPatientDob"
+                    class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all"
+                    placeholder="DD/MM/AAAA">
+                <p class="text-xs text-slate-500 mt-1">Deixe em branco para não alterar</p>
+            </div>
+
+            <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
+                <button type="button" data-action="close-patient-modal"
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-accent hover:bg-accent/90 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all flex items-center justify-center text-sm">
+                    <span data-button-text>Salvar</span>
+                    <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module" nonce="{{ csp_nonce }}">
+    import { setupDateInput } from '/static/js/date-input.js';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        let datepickerInstance = null;
+
+        const openEditPatientModal = function (patientId, patientName, patientDob) {
+            document.getElementById('modalPatientId').value = patientId;
+            document.getElementById('modalPatientName').value = patientName;
+            document.getElementById('modalPatientDob').value = patientDob;
+            document.getElementById('editPatientModal').classList.remove('hidden');
+
+            // Setup auto-formatting and validation for modal date input
+            setupDateInput('modalPatientDob');
+
+            // Initialize Flatpickr for modal date input
+            if (!datepickerInstance) {
+                datepickerInstance = flatpickr("#modalPatientDob", {
+                    dateFormat: "d/m/Y",
+                    locale: "pt",
+                    allowInput: true,
+                    maxDate: "today"
+                });
+            }
+            datepickerInstance.setDate(patientDob);
+        }
+
+        const closeEditPatientModal = function () {
+            document.getElementById('editPatientModal').classList.add('hidden');
+        }
+
+        const openEditPhoneModal = function () {
+            document.getElementById('editPhoneModal').classList.remove('hidden');
+        }
+
+        const closeEditPhoneModal = function () {
+            document.getElementById('editPhoneModal').classList.add('hidden');
+        }
+
+        // Event delegation for all modal actions
+        document.addEventListener('click', function (e) {
+            const action = e.target.closest('[data-action]');
+            if (!action) return;
+
+            const actionType = action.getAttribute('data-action');
+
+            if (actionType === 'open-phone-modal') {
+                openEditPhoneModal();
+            } else if (actionType === 'close-phone-modal') {
+                closeEditPhoneModal();
+            } else if (actionType === 'open-patient-modal') {
+                const patientId = action.getAttribute('data-patient-id');
+                const patientName = action.getAttribute('data-patient-name');
+                const patientDob = action.getAttribute('data-patient-dob');
+                openEditPatientModal(patientId, patientName, patientDob);
+            } else if (actionType === 'close-patient-modal') {
+                closeEditPatientModal();
+            }
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeEditPatientModal();
+                closeEditPhoneModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('editPatientModal').addEventListener('click', function (event) {
+            if (event.target === this) {
+                closeEditPatientModal();
+            }
+        });
+
+        document.getElementById('editPhoneModal').addEventListener('click', function (event) {
+            if (event.target === this) {
+                closeEditPhoneModal();
+            }
+        });
+    });
+</script>
+{% endblock %}

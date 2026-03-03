@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Solicitação - SS-54{% endblock %}
+
+{% block content %}
+{% from "components/type_selection_grid.html" import render_type_grid %}
+{{ render_type_grid(
+process_types=process_types,
+back_url="/dashboard",
+card_base_url="/novo",
+title="Nova Solicitação",
+subtitle="Selecione o tipo do processo que deseja iniciar"
+) }}
+{% endblock %}

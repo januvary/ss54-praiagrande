@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% from "components/document_row.html" import document_row with context %}
+{% from "components/pagination.html" import render_pagination %}
+{% from "components/ui_components.html" import page_header, empty_state, spinner %}
+
+{% block title %}{{ process.protocol_number }} - SS-54{% endblock %}
+
+{% block content %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-6 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        {% call page_header(
+            title=process.type_title,
+            back_url="/dashboard",
+            back_text="Voltar às solicitações"
+        ) %}
+        <div class="flex items-center gap-3">
+            <span class="font-mono text-lg text-slate-500">
+                {{ process.protocol_number }}
+            </span>
+            {% with status=process.status, status_labels=status_labels %}
+            {% include "components/status_badge.html" %}
+            {% endwith %}
+        </div>
+        {% endcall %}
+
+        {% if status_description %}
+        <div
+            class="{% if process.status == 'expirado' %}bg-purple-50 border-purple-200{% else %}bg-blue-50 border-blue-200{% endif %} border rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+            <p class="text-sm {% if process.status == 'expirado' %}text-purple-800{% else %}text-blue-800{% endif %}">{{
+                status_description | safe }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Renovation Button for Expired Processes -->
+        {% if can_renew %}
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                <div>
+                    <h3 class="font-semibold text-purple-800 text-sm sm:text-base mb-1">Processo Expirado</h3>
+                </div>
+                <a href="/renovar/{{ process.id }}/{{ process.type }}"
+                    class="inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white py-2.5 sm:py-3 px-6 rounded-lg font-medium text-sm sm:text-base transition-colors">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                    Renovar
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="font-heading font-semibold text-primary mb-4">Informações do Processo</h2>
+
+            <div class="grid sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-slate-500">Tipo de Processo</p>
+                    <p class="font-medium text-primary">{{ process_type_titles[process.type] }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Tipo de Solicitação</p>
+                    <p class="font-medium text-primary">{{ request_type_titles[process.request_type] }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Criado em</p>
+                    <p class="font-medium text-primary">{{ process.created_at | date("%d/%m/%Y às %H:%M") }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Última atualização</p>
+                    <p class="font-medium text-primary">{{ process.updated_at | date("%d/%m/%Y às %H:%M") }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Status</p>
+                    <p class="font-medium text-primary">{{ status_labels[process.status].label }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Documentos</p>
+                    <p class="font-medium text-primary">{{ process.documents | length }} enviados</p>
+                </div>
+            </div>
+
+            {% set status_notes = process.activities | selectattr('action', 'equalto', 'status_changed') |
+            selectattr('extra_data.note') | list %}
+            {% if status_notes %}
+            <div class="mt-4 pt-4 border-t border-slate-100">
+                <p class="text-slate-500 text-sm mb-2">Observações</p>
+                <div class="space-y-2">
+                    {% for activity in status_notes | reverse %}
+                    <p class="text-primary text-sm">
+                        <span class="text-slate-500">[{{ activity.created_at | date("%d/%m/%Y") }}]</span>
+                        {{ activity.extra_data.note }}
+                    </p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% set admin_docs = process.documents | selectattr('document_type', 'equalto', 'outro') | list %}
+        {% if admin_docs %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="font-heading font-semibold text-primary mb-4">Documentos da Equipe</h2>
+            <div class="space-y-2">
+                {% for doc in admin_docs %}
+                {{ document_row(doc, download_url="/documentos", show_validate_button=false,
+                show_validation_status=false, doc_type_title="Documento da Equipe") }}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Documents List -->
+        {% if process.status == 'correcao_solicitada' or process.status == 'incompleto' or process.status == 'rascunho'
+        %}
+        <form id="upload-form" action="/processo/{{ process.id }}/documentos" method="POST"
+            enctype="multipart/form-data" class="mb-6" data-loading>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <!-- Hidden file upload components -->
+            <div class="hidden-upload-components hidden">
+                <file-upload-input name="doc_1" id="upload-doc-1" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="formulario"></file-upload-input>
+                <file-upload-input name="doc_2" id="upload-doc-2" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="declaracao"></file-upload-input>
+                <file-upload-input name="doc_3" id="upload-doc-3" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="receita"></file-upload-input>
+                <file-upload-input name="doc_4" id="upload-doc-4" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="relatorio"></file-upload-input>
+                <file-upload-input name="doc_5" id="upload-doc-5" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="documento_pessoal"></file-upload-input>
+                <file-upload-input name="doc_6" id="upload-doc-6" accept=".pdf,.jpg,.jpeg,.png" multiple preview
+                    data-type="exame"></file-upload-input>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h2 class="font-heading font-semibold text-primary text-sm sm:text-base">Documentos</h2>
+                    <button id="reenviar-button" type="submit"
+                        class="hidden w-full sm:w-auto bg-accent hover:bg-accent-hover text-white py-2 px-4 rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2">
+                        <span data-button-text>Reenviar</span>
+                        <span data-button-spinner class="hidden">{{ spinner(size="sm", color="white") }}</span>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    {% for doc_type in required_doc_types %}
+                    {% set group = process.documents | selectattr('document_type', 'equalto', doc_type) | list %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-600 mb-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                {{ doc_type_titles[doc_type] }}
+                                <span class="text-xs text-slate-400 font-normal">({{ group | length }})</span>
+                            </div>
+                            <button type="button" data-doc-type="{{ doc_type }}" class="add-doc-btn text-xs text-accent hover:underline">
+                                + Adicionar
+                            </button>
+                        </h3>
+                        {% if group %}
+                        <div class="space-y-2">
+                            {% for doc in group %}
+                            {{ document_row(doc, download_url="/documentos", show_validate_button=false,
+                            doc_type_title=doc_type_titles.get(doc.document_type)) }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div id="preview-{{ doc_type }}" class="mt-2"></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="font-heading font-semibold text-primary text-sm sm:text-base mb-3 sm:mb-4">Documentos</h2>
+
+            <div class="space-y-6">
+                {% for doc_type in required_doc_types %}
+                {% set group = process.documents | selectattr('document_type', 'equalto', doc_type) | list %}
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        {{ doc_type_titles[doc_type] }}
+                        <span class="text-xs text-slate-400 font-normal">({{ group | length }})</span>
+                    </h3>
+                    {% if group %}
+                    <div class="space-y-2">
+                        {% for doc in group %}
+                        {{ document_row(doc, download_url="/documentos", show_validate_button=false,
+                        doc_type_title=doc_type_titles.get(doc.document_type)) }}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ empty_state("Nenhum documento enviado", padding="") }}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if process.activities %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
+            <h2 class="font-heading font-semibold text-primary mb-4">Histórico</h2>
+
+            <div class="space-y-4">
+                {% for activity in process.activities %}
+                <div class="flex gap-3">
+                    <div class="w-2 h-2 bg-accent rounded-full mt-2"></div>
+                    <div>
+                        <p class="text-sm text-primary">{{ activity.description }}</p>
+                        <p class="text-xs text-slate-500">{{ activity.created_at | date("%d/%m/%Y às %H:%M") }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {{ render_pagination(current_path, activity_pagination, style="user") }}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% include "components/document_viewer_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+    // Map document types to field numbers
+    const docTypeToField = {
+        'formulario': 1,
+        'declaracao': 2,
+        'receita': 3,
+        'relatorio': 4,
+        'documento_pessoal': 5,
+        'exame': 6
+    };
+
+    // Trigger file picker for a specific document type
+    function triggerUpload(docType) {
+        const fieldNum = docTypeToField[docType];
+        const component = document.querySelector(`file-upload-input[name="doc_${fieldNum}"]`);
+        if (component) {
+            const input = component.querySelector('input[type="file"]');
+            if (input) {
+                input.click();
+            }
+        }
+    }
+
+    // Move file previews to the correct document type group
+    function movePreviews() {
+        document.querySelectorAll('file-upload-input').forEach(component => {
+            const docType = component.getAttribute('data-type');
+            const previewContainer = document.getElementById(`preview-${docType}`);
+            const fileList = component.querySelector('.file-list');
+
+            if (previewContainer && fileList) {
+                if (fileList.firstChild) {
+                    previewContainer.innerHTML = '';
+                    while (fileList.firstChild) {
+                        previewContainer.appendChild(fileList.firstChild);
+                    }
+                }
+                updateReenviarButton();
+            }
+        });
+    }
+
+    // Update reenviar button based on staged files
+    function updateReenviarButton() {
+        const button = document.getElementById('reenviar-button');
+        if (!button) return;
+
+        let typesWithFiles = 0;
+        // Check preview containers instead of hidden file lists
+        Object.keys(docTypeToField).forEach(docType => {
+            const previewContainer = document.getElementById(`preview-${docType}`);
+            if (previewContainer && previewContainer.children.length > 0) {
+                typesWithFiles++;
+            }
+        });
+
+        if (typesWithFiles > 0) {
+            button.classList.remove('hidden');
+            button.textContent = `Reenviar (${typesWithFiles})`;
+        } else {
+            button.classList.add('hidden');
+        }
+    }
+
+    // Open staged file in document viewer modal
+    function openStagedFile(objectUrl, mimeType, filename) {
+        const modal = document.getElementById('docViewerModal');
+        const title = document.getElementById('docViewerTitle');
+        const content = document.getElementById('docViewerContent');
+
+        // Clear previous content
+        content.innerHTML = '';
+        title.textContent = filename;
+
+        if (mimeType.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = objectUrl;
+            img.alt = filename;
+            img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; display: block; margin: auto;';
+            content.appendChild(img);
+        } else if (mimeType === 'application/pdf') {
+            const embed = document.createElement('embed');
+            embed.src = objectUrl;
+            embed.type = 'application/pdf';
+            embed.style.cssText = 'width: 100%; height: 100%;';
+            content.appendChild(embed);
+        } else {
+            const p = document.createElement('p');
+            p.className = 'p-8 text-center text-slate-500';
+            p.textContent = 'Visualização não disponível para este tipo de arquivo.';
+            content.appendChild(p);
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    // Set up event listeners when DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        // Listen for file selection changes
+        document.querySelectorAll('file-upload-input').forEach(component => {
+            const input = component.querySelector('input[type="file"]');
+            if (input) {
+                input.addEventListener('change', movePreviews);
+            }
+        });
+
+        // Event delegation for staged file preview clicks and remove buttons
+        document.addEventListener('click', function (e) {
+            // Handle add document button clicks
+            const addBtn = e.target.closest('.add-doc-btn');
+            if (addBtn) {
+                const docType = addBtn.getAttribute('data-doc-type');
+                triggerUpload(docType);
+                return;
+            }
+
+            // Handle remove button clicks
+            const removeBtn = e.target.closest('.remove-file-btn');
+            if (removeBtn) {
+                e.preventDefault();
+                const componentName = removeBtn.getAttribute('data-upload-component');
+                const fileIndex = parseInt(removeBtn.getAttribute('data-file-index'));
+                const component = document.querySelector(`file-upload-input[name="${componentName}"]`);
+                if (component) {
+                    component.removeFile(fileIndex);
+                    movePreviews();
+                    updateReenviarButton();
+                }
+                return;
+            }
+
+            // Handle preview clicks
+            const clickable = e.target.closest('[data-upload-component][data-file-index]');
+            if (!clickable) return;
+
+            const componentName = clickable.getAttribute('data-upload-component');
+            const fileIndex = parseInt(clickable.getAttribute('data-file-index'));
+
+            const component = document.querySelector(`file-upload-input[name="${componentName}"]`);
+            if (!component || !component.objectUrls) return;
+
+            const objectUrl = component.objectUrls.get(fileIndex);
+            const file = component.files[fileIndex];
+
+            if (objectUrl && file) {
+                openStagedFile(objectUrl, file.type, file.name);
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitação Enviada - SS-54{% endblock %}
+
+{% block content %}
+<section
+    class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center py-8 sm:py-12 px-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 text-center">
+            <!-- Success Icon -->
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">
+                Solicitação Enviada!
+            </h1>
+
+            <p class="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
+                Sua solicitação foi enviada com sucesso e está em revisão. Você receberá atualizações por email
+                em:
+            </p>
+
+            <p class="text-base sm:text-lg font-medium text-primary bg-slate-100 rounded-lg px-4 py-2 mb-4 sm:mb-6">
+                {{ email }}
+            </p>
+
+            <!-- Protocol Number -->
+            <div class="bg-slate-50 rounded-xl p-3 sm:p-4 mb-6 sm:mb-8">
+                <p class="text-xs sm:text-sm text-slate-500 mb-1">Número do Protocolo</p>
+                <p class="text-xl sm:text-2xl font-bold text-accent font-mono">
+                    {{ protocol }}
+                </p>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+                <h3 class="text-sm font-medium text-blue-900 mb-2">Próximos passos:</h3>
+                <ol class="text-xs sm:text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                    <li>Aguarde a análise dos documentos</li>
+                    <li>Você será notificado por email sobre o andamento</li>
+                    <li>Em caso de pendências, envie os documentos faltantes</li>
+                </ol>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                {% if process_id %}
+                <a href="/processo/{{ process_id }}"
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-lg font-medium transition-colors text-center">
+                    Acompanhar Solicitação
+                </a>
+                {% else %}
+                <a href="/dashboard"
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-lg font-medium transition-colors text-center">
+                    Acompanhar Solicitação
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

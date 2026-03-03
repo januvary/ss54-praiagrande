@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% from "components/ui_components.html" import spinner %}
+
+{% block title %}Verificando acesso - SS-54{% endblock %}
+
+{% block content %}
+<section class="min-h-[calc(100vh-200px)] bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center py-8 sm:py-12 px-4">
+    <div class="w-full max-w-md text-center">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
+            <!-- Loading Spinner -->
+            <div id="loadingState" class="mx-auto mb-4 sm:mb-6">
+                {{ spinner(container=True) }}
+            </div>
+
+            <h1 id="loadingTitle" class="font-heading text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">
+                Verificando seu acesso...
+            </h1>
+
+            <p id="loadingText" class="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
+                Por favor, aguarde enquanto confirmamos seu login.
+            </p>
+
+            <!-- Error state (hidden by default) -->
+            <div id="errorState" class="hidden">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <h1 class="font-heading text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">
+                    Link inválido
+                </h1>
+                <p id="errorMessage" class="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6"></p>
+                <a href="/login" class="inline-block bg-accent hover:bg-accent-hover text-white py-2.5 sm:py-3 px-5 sm:px-6 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                    Tentar novamente
+                </a>
+            </div>
+
+            <!-- Auto-submit form -->
+            <form id="confirmForm" method="POST" action="/auth/confirm-login" class="hidden">
+                <input type="hidden" name="token" id="tokenInput" value="">
+                <input type="hidden" name="action" value="">
+                <input type="hidden" name="csrf_token" value="">
+            </form>
+
+            <!-- No-JS fallback -->
+            <noscript>
+                <div class="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg text-left">
+                    <p class="text-sm text-amber-800 font-medium mb-2">JavaScript necessário</p>
+                    <p class="text-xs sm:text-sm text-amber-700 mb-3 sm:mb-4">
+                        Seu navegador não suporta JavaScript. Copie o código após o símbolo <strong>#</strong> 
+                        na barra de endereço do seu navegador e cole abaixo:
+                    </p>
+                    <form method="POST" action="/auth/confirm-login">
+                        <input type="text" name="token" placeholder="Cole o código aqui" 
+                               class="w-full px-3 sm:px-4 py-2 text-sm border border-slate-300 rounded-lg mb-3" required>
+                        <input type="hidden" name="action" value="">
+                        <button type="submit" class="w-full bg-accent hover:bg-accent-hover text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                            Confirmar acesso
+                        </button>
+                    </form>
+                    <p class="text-xs text-amber-600 mt-2 sm:mt-3">
+                        Nota: O formulário acima requer um token CSRF. Se você não tem JavaScript habilitado, 
+                        recarregue a página primeiro para receber o cookie de segurança.
+                    </p>
+                </div>
+            </noscript>
+
+            <script nonce="{{ csp_nonce }}">
+                function getCookie(name) {
+                    const value = '; ' + document.cookie;
+                    const parts = value.split('; ' + name + '=');
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                    return null;
+                }
+
+                function showError(message) {
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('loadingTitle').classList.add('hidden');
+                    document.getElementById('loadingText').classList.add('hidden');
+                    document.getElementById('errorState').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = message;
+                }
+
+                function submitWithCsrfToken() {
+                    const token = window.location.hash.substring(1);
+                    
+                    if (!token) {
+                        showError('Este link de verificação está incompleto. Por favor, use o link completo do email.');
+                        return;
+                    }
+                    
+                    history.replaceState(null, '', window.location.pathname);
+                    
+                    document.getElementById('tokenInput').value = token;
+                    
+                    const csrfToken = getCookie('csrf_token');
+                    const form = document.getElementById('confirmForm');
+
+                    if (csrfToken && form) {
+                        form.querySelector('[name="csrf_token"]').value = csrfToken;
+                        form.submit();
+                    } else {
+                        setTimeout(submitWithCsrfToken, 100);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    submitWithCsrfToken();
+                    
+                    setTimeout(function() {
+                        const form = document.getElementById('confirmForm');
+                        const errorState = document.getElementById('errorState');
+                        if (form && form.classList.contains('hidden') && errorState.classList.contains('hidden')) {
+                            form.classList.remove('hidden');
+                            document.getElementById('loadingState').classList.add('hidden');
+                            
+                            const csrfToken = getCookie('csrf_token');
+                            if (csrfToken) {
+                                form.querySelector('[name="csrf_token"]').value = csrfToken;
+                            }
+                            
+                            const button = document.createElement('button');
+                            button.type = 'submit';
+                            button.className = 'w-full bg-accent hover:bg-accent-hover text-white py-3 px-6 rounded-lg font-medium transition-colors mt-4';
+                            button.textContent = 'Confirmar acesso';
+                            form.appendChild(button);
+
+                            const helpText = document.createElement('p');
+                            helpText.className = 'text-sm text-slate-500 mt-4';
+                            helpText.textContent = 'Clique no botão se não for redirecionado automaticamente';
+                            form.parentElement.appendChild(helpText);
+                        }
+                    }, 5000);
+                });
+            </script>
+        </div>
+    </div>
+</section>
+{% endblock %}
