@@ -1,0 +1,74 @@
+{#
+Card Component Macro
+
+Usage:
+{% from "components/card.html" import card %}
+{{ card(
+    url="/login?action=new",
+    title="Nova Solicitação",
+    description="Inicie um novo processo...",
+    icon_type="document",
+    note=None
+) }}
+
+Parameters:
+- url: The URL the card links to
+- title: Card title (e.g., "Nova Solicitação")
+- description: Card description text
+- icon_type: Icon type to display (document, activity, eye, etc.)
+- note: Optional note text (displays if provided)
+#}
+
+{% from "components/ui_components.html" import icon_pill, icon_droplet, icon_activity, icon_document, icon_arrow_right %}
+
+{% macro icon_eye(class="w-7 h-7", color="text-accent") %}
+<svg class="{{ class }} {{ color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle>
+</svg>
+{% endmacro %}
+
+{% macro icon_refresh(class="w-7 h-7", color="text-accent") %}
+<svg class="{{ class }} {{ color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+    </path>
+</svg>
+{% endmacro %}
+
+{% macro card(url, title, description, icon_type="document", note=None) %}
+<a href="{{ url }}"
+     class="group bg-white rounded-2xl p-3 sm:p-6 shadow-lg hover:shadow-xl border border-slate-100 hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 flex items-center sm:block gap-3 sm:gap-0">
+
+    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-4 group-hover:bg-accent/10 transition-colors">
+        {% if icon_type == "pill" %}
+        {{ icon_pill(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% elif icon_type == "droplet" %}
+        {{ icon_droplet(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% elif icon_type == "activity" %}
+        {{ icon_activity(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% elif icon_type == "refresh" %}
+        {{ icon_refresh(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% elif icon_type == "eye" %}
+        {{ icon_eye(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% else %}
+        {{ icon_document(class="w-5 h-5 sm:w-6 sm:h-6", color="text-accent") }}
+        {% endif %}
+    </div>
+
+    <div class="flex-1 min-w-0 sm:flex sm:flex-col">
+        <h3 class="font-heading text-base sm:text-lg font-bold text-primary mb-0 sm:mb-2 group-hover:text-accent transition-colors">
+            {{ title }}
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 mb-0 sm:mb-4 hidden sm:block flex-grow">
+            {{ description }}
+        </p>
+
+        {% if note %}
+        <p class="text-xs text-orange-600 bg-orange-50 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 hidden sm:block">
+            <strong>Nota:</strong> {{ note | safe }}
+        </p>
+        {% endif %}
+    </div>
+</a>
+{% endmacro %}

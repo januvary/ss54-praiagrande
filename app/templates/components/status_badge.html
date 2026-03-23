@@ -1,0 +1,7 @@
+{# Status badge component - displays process status with color #}
+{% set status_info = status_labels.get(status, {"label": status, "color": "gray"}) %}
+{% set classes = color_classes.get(status_info.color, color_classes.gray) %}
+
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium {{ classes }}">
+    {{ status_info.label }}
+</span>

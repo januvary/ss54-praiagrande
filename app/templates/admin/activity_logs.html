@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+{% from "components/ui_components.html" import empty_state %}
+
+{% block title %}Registro de Atividades{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-6">
+        <a href="/admin" class="text-slate-500 hover:text-slate-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Registro de Atividades</h1>
+            <p class="text-slate-600 mt-1">Histórico completo de ações do sistema</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Ação</label>
+                <select name="action_type"
+                    class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todos</option>
+                    {% for action in action_types %}
+                    <option value="{{ action }}" {% if current_filters.action_type==action %}selected{% endif %}>
+                        {{ action }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Process ID</label>
+                <input type="text" name="process_id"
+                    class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value="{{ current_filters.process_id }}" placeholder="UUID do processo">
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit"
+                    class="px-4 py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium transition-colors">
+                    Filtrar
+                </button>
+                <a href="/admin/activity-logs"
+                    class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Limpar
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Activity Table -->
+    {% if pagination.total > 0 %}
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Data/Hora</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Paciente</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Processo</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ação
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Usuário</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Descrição</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                    {% for activity in activities %}
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-action="navigate"
+                        data-url="/admin/processes/{{ activity.process_id }}">
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-900">
+                            {{ activity.created_at|date("%d/%m/%Y %H:%M") }}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-600">
+                            {% if activity.process and activity.process.patient %}
+                            {{ activity.process.patient.name }}
+                            {% else %}
+                            <span class="text-slate-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-600 font-mono text-xs">
+                            {% if activity.process and activity.process.protocol_number %}
+                            {{ activity.process.protocol_number }}
+                            {% else %}
+                            <span title="{{ activity.process_id }}">{{ activity.process_id|uuid_truncate }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                {{ activity.action }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-600">
+                            {% if activity.user_id %}
+                            <span title="{{ activity.user_id }}" class="font-mono text-xs">{{
+                                activity.user_id|uuid_truncate }}</span>
+                            {% else %}
+                            <span class="text-slate-500">Sistema</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-slate-900">
+                            {{ activity.description }}
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm" data-action="stop-propagation">
+                            {% if activity.extra_data %}
+                            <button
+                                class="px-3 py-1.5 border border-blue-600 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-50"
+                                type="button" data-action="toggle-details" data-target="details-{{ activity.id }}">
+                                Ver
+                            </button>
+                            <div id="details-{{ activity.id }}" class="hidden mt-2">
+                                <pre
+                                    class="bg-slate-50 p-3 rounded text-xs overflow-x-auto">{{ activity.extra_data|tojson(indent=2) }}</pre>
+                            </div>
+                            {% else %}
+                            <span class="text-slate-400">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{ render_pagination("/admin/activity-logs", pagination, style="admin", extra_params=current_filters) }}
+    {% else %}
+    {{ empty_state("Não há registros de atividades no sistema.", padding="py-8") }}
+    {% endif %}
+</div>
+{% endblock %}
